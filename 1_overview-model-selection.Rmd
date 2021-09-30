@@ -37,7 +37,7 @@ https://uoftcoders.github.io/rcourse/
 Excellent video here:
 https://www.youtube.com/watch?v=7XAHjm6Vy5k
 
-## Introduction to model selection
+## Background
 
 Up to now, when faced with a biological question, we have formulated a null hypothesis, generated a model to test the null hypothesis, summarized the model to get the value of the test-statistic (e.g. _t_-statistic, _F_-value, etc.), and rejected the null hypothesis when the observed test statistic falls outside the test statistic distribution with some arbitrarily low probability (e.g. _P_ < 0.05). This low probability then allows us to reject the null hypothesis in favour of the more biologically interesting alternative hypothesis. 
 
@@ -56,25 +56,30 @@ The next step is to decide how we select the "best" model or set of best models.
 This trade-off between complexity and explanatory power (model fit) is at the heart of model selection.
 
 ![](images/elephant.jpeg)
-\
-\
-![](images/parsimony.jpg)
+
+This is also closely related to the concept of **parsimony**; principle that suggests that all things being equal, you should prefer the simplest possible explanation for a phenomenon or the simplest possible solution to a problem. Since parsimonious explanations are simpler, they tend to generalize better across a wide range of situations. This means that a parsimonious explanation will generally be better able to explain a wider range of phenomena than a less parsimonious one, since a parsimonious explanation doesn’t rely on as many assumptions that are specific to the situation at hand.  
+
+![](images/parsimony2.png)
 \
 \
 
-## Enter Information Theory and model selection criteria
+## Information Theory and Model Selection Criteria
 
 There are numerous model selection criteria based on mathematical information theory that we can use to select among a set of candidate models. They additionally allow the relative weights of different models to be compared and allow multiple models to be used for inferences. The most commonly used information criteria in ecology and evolution are: Akaike's Information Criterion (AIC), the corrected AIC~c~ (corrected for small sample sizes), and the Bayesian Information Criterion (BIC, also known as the Schwarz Criterion; Johnson and Omland, 2004). Here we will focus on AIC and AIC~c~. Here is how AIC is calculated:
 
 $$ AIC = -2Log\mathcal{L} \ + \ 2p $$
-The lower the AIC value, the better the model. $-2Log\mathcal{L}$ is called the **negative log likelihood** of the model, and measures the model's fit (or lack thereof) to the observed data: **Lower** negative log-likelihood values indicate a beter fit of the model to the observed data. $2p$ is a _bias correcting factor_ that penalizes the model AIC based on the number of parameters (p) in the model. 
+The lower the AIC value, the better the model. $-2Log\mathcal{L}$ is called the **negative log likelihood** of the model, and measures the model's fit (or lack thereof) to the observed data: **Lower** negative log-likelihood values indicate a better fit of the model to the observed data. $2p$ is a _bias correcting factor_ that penalizes the model AIC based on the number of parameters (p) in the model. 
 
 Similar to AIC is AIC~c~, which corrects for small sample sizes. It is recommended to use AIC~c~ when $n/k$ is less than 40, with $n$ being the sample size (i.e. total number of observations) and $k$ being the number of parameters in the most saturated model (i.e. the model with the most parameters)(Symonds and Moussalli 2011). AIC~c~ is calculated as follows:
 
 $$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
 
-## Caveats to model selection
+## Caveats and Limitations to Model Selection
 
-1. Depends on the models included in the candidate set. You can’t identify a model as being the “best” fit to the data if you didn’t include the model to begin with!
-2. The parameter estimates and predictions arising from the “best” model or set of best models should be biologically meaningful.
-3. Need to decide whether to use model selection or common inferential statistics (e.g. based on P-values). Techniques that rely on both approaches are possible (e.g. backward variable selection followed by averaging of top models) but are discouraged by some model-selection purists.
+1. Depends on the models included in the candidate set. You can’t identify a model as being the “best” fit to the data if you didn’t include the model to begin with!  
+\
+2. The parameter estimates and predictions arising from the “best” model or set of best models should be biologically meaningful.  
+\
+3. Need to decide whether to use model selection or common inferential statistics (e.g. based on P-values). Techniques that rely on both approaches are possible (e.g. backward variable selection followed by averaging of top models) but are discouraged by some model-selection purists.  
+\
+4. Difficult or impossible to compare models with different assumptions, such as those with different error structures (e.g., Poisson vs. Binomial data).  

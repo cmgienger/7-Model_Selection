@@ -20,13 +20,19 @@ library(ggplot2)
 library(patchwork)
 library(MuMIn)
 ```
+
 Jim Peterson, Oregon State University
 https://sites.google.com/site/rforfishandwildlifegrads/home/mumin_usage_examples
 
 ![Habitat Selection by Elk](images/Elk.jpg)  
+```{r adjust width of console outputs}
+#many of our tables output in the console are really wide; expand limits [width] to fit them all in,
+#otherwise they wrap awkwardly
+options(width = 90)
+#https://bookdown.org/yihui/rmarkdown-cookbook/text-width.html
 
-## Comparing Multiple Linear Models
-
+#matrix(runif(100), ncol = 20) #test code to display adjusted width
+```
 
 ```{r}
 dater<-read.csv("data/elk_example.csv")
@@ -41,12 +47,12 @@ pairs(dater[,4:8], lower.panel = NULL) #use all rows of columns 4 through 8
 
 Elevation and Slope look closely related, which means they are very likely redundant information representing the same phenomenon, but we will ignore for now.
 
-One very important thing you should do next is change the global options for how R functions handle missing data. By making this change, a function will not work if data are missing. This is required if you use the "dredge" function for exploratory data analysis.
+One very important thing you should do next is change the global options for how R functions handle missing data. By making this change, a function will not work if data are missing. This is required if you use the `dredge` function for exploratory data analysis.
 ```{r}
 # change na. action
 options(na.action = "na.fail")
 ```
-Ok we’re ready to go. Let’s fit four candidate models that explain variation in animal density. Ideally, these models would represent hypotheses. Given the nature of the response, we’ll use ordinary linear regression with the “lm” function.
+Ok we’re ready to go. Let’s fit four candidate models that explain variation in animal density. Ideally, these models would represent hypotheses. Given the nature of the response, we’ll use ordinary linear regression with the `lm` function.
 ```{r}
 #First, fit 4 candidate linear models to explain variation in density
 mod1<-lm(density~distance+elev, data = dater)
@@ -54,7 +60,7 @@ mod2<-lm(density~slope+pct.cover, data = dater)
 mod3<-lm(density~slope+distance, data = dater)
 mod4<-lm(density~slope+distance+elev, data = dater)
 ```
-We can now use the `model.sel` function to conduct model selection. The default model selection criteria is Akaike’s information criteria (AIC) with small sample bias adjustment, AICc. Here we’ll create an object `out.put` that contains all of the model selection information.
+We can now use the `model.sel` function to conduct model selection. The default model selection criteria is Akaike’s information criteria (AIC) with small sample bias adjustment, AIC~c~. Here we’ll create an object `out.put` that contains all of the model selection information.
 ```{r}
 # use the model.sel function to conduct model selection
 # and put output into object out.put
