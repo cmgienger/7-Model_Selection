@@ -1,0 +1,206 @@
+---
+title: "Model Selection"
+subtitle: "Linear Models"
+output:
+  html_document:
+    toc: yes
+---
+```{r setup2, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+packages_needed <- c("ggplot2",
+                     "patchwork",
+                     "MuMIn"
+                     )
+pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
+if(length(pk_to_install)>0 ){
+  install.packages(pk_to_install,repos="http://cran.r-project.org")
+}
+#lapply(packages_needed, require, character.only = TRUE)
+library(ggplot2)
+library(patchwork)
+library(MuMIn)
+```
+Jim Peterson, Oregon State University
+https://sites.google.com/site/rforfishandwildlifegrads/home/mumin_usage_examples
+
+![Habitat Selection by Elk](images/Elk.jpg)  
+
+## Comparing Multiple Linear Models
+
+
+```{r}
+dater<-read.csv("data/elk_example.csv")
+```
+The data includes three response variables; count, density, and presence.
+The data includes five predictor variables: elev (elevation), slope (gradient), area, distance (to nearest population), and pct.cover (% cover).
+
+```{r fig.height=8, fig.width=8}
+#check for co-linearity among the four predictor variables
+pairs(dater[,4:8], lower.panel = NULL) #use all rows of columns 4 through 8
+```
+
+Elevation and Slope look closely related, which means they are very likely redundant information representing the same phenomenon, but we will ignore for now.
+
+One very important thing you should do next is change the global options for how R functions handle missing data. By making this change, a function will not work if data are missing. This is required if you use the "dredge" function for exploratory data analysis.
+```{r}
+# change na. action
+options(na.action = "na.fail")
+```
+Ok we’re ready to go. Let’s fit four candidate models that explain variation in animal density. Ideally, these models would represent hypotheses. Given the nature of the response, we’ll use ordinary linear regression with the “lm” function.
+```{r}
+#First, fit 4 candidate linear models to explain variation in density
+mod1<-lm(density~distance+elev, data = dater)
+mod2<-lm(density~slope+pct.cover, data = dater)
+mod3<-lm(density~slope+distance, data = dater)
+mod4<-lm(density~slope+distance+elev, data = dater)
+```
+We can now use the `model.sel` function to conduct model selection. The default model selection criteria is Akaike’s information criteria (AIC) with small sample bias adjustment, AICc. Here we’ll create an object `out.put` that contains all of the model selection information.
+```{r}
+# use the model.sel function to conduct model selection
+# and put output into object out.put
+out.put<-model.sel(mod1,mod2,mod3,mod4)
+out.put
+```
+The models are sorted from best (top) to worst (bottom). Looks like `mod1`, containing an intercept (Int), distance (dst), and elevation(elev) is best with a weight of 0.72. It is 0.72/0.264 = 2.72 times more likely to be the best explanation (hypothesis) for variation in density. 
+
+Note that the function does not use the whole name for model parameters, but creates abbreviations. Quite often we need to express model selection uncertainty by specifying a confidence set of models using some rule. Here we can use the `subset` function to select the models that meet the criteria. Note that the weights are re-normalized for the models selected. That is, they are adjusted so that they add to one. I hate this feature--not very helpful.
+```{r create subset of all models}
+# create a confidence set of models using the subset function
+# select models with delta AICc less than 5
+# IMPORTANT: Weights have been renormalized!!
+subset(out.put, delta <5)
+```
+```{r Royall}
+# select models using Royall's 1/8 rule for strength of evidence
+#https://www.stat.fi/isi99/proceedings/arkisto/varasto/roya0578.pdf
+# IMPORTANT: Weights have been renormalized!!
+subset(out.put, 1/8 < weight/max(out.put$weight))
+```
+Not much different than delta < 5 above. Let’s try another criteria based on the cumulative sum of the model weights.
+```{r}
+# select models 95% cumulative weight criteria
+# IMPORTANT: Weights have been renormalized!!
+subset(out.put, cumsum(out.put$weight) <= .95)
+```
+In most circumstances, you would like to include model selection results in a table in a report, publication, or thesis. Here, we need to coerce the output from the `model.sel` function into a dataframe. The first c elements of that data frame contain what we want. How do I know that? I first created the dataframe and used the “str” function to see what elements were in the dataframe.
+```{r}
+# coerce the object out.put into a data frame
+# elements 6-10 in out.put have what we want
+sel.table<-as.data.frame(out.put)[6:10]
+sel.table
+```
+This is a bit messy and not ready for any report. Let’s clean this up a bit -- first by rounding.
+```{r adjusting sig digits}
+# a little clean-up, lets round things a bit
+sel.table[,2:3]<- round(sel.table[,2:3],2)
+sel.table[,4:5]<- round(sel.table[,4:5],3)
+sel.table
+# that’s better
+```
+```{r more clean up}
+# how about a little renaming columns to fit proper conventions
+# number of parameters (df) should be K
+names(sel.table)[1] = "K"
+
+## lets be sure to put the model names in a column
+sel.table$Model<-rownames(sel.table)
+
+# replace Model name with formulas little tricky so be careful
+for(i in 1:nrow(sel.table)) sel.table$Model[i]<- as.character(formula(paste(sel.table$Model[i])))[3]
+
+# let's see what is in there
+sel.table
+```
+```{r reorder columns}
+#little reordering of columns
+sel.table<-sel.table[,c(6,1,2,3,4,5)] #specify order of columns
+sel.table
+```
+Now that’s more like it. Models are from best to worst fitting. You can usually drop AICc if the Log Likelihood (logLik) is in the table, but we’ll leave it here. This is about ready for a report, so let’s write it to a comma separated file.
+```{r write AIC table to file}
+# write to a file, here a comma separated values format
+write.csv(sel.table,"tables/My model selection table.csv", row.names = F)
+```
+The default model selection criteria for all `MuMIn` functions is AICc. If you don’t like or have another favorite, you can specify that method using the “rank” option in `model.sel`. Below is code for selecting models using Bayesian or Schwartz’s information criteria (BIC) consistent AIC with Fishers information matrix (CAICF) and quasi-AIC (QAIC, more on this later below).
+```{r}
+# model selection table; sorted by BIC
+model.sel(mod1,mod2,mod3,mod4, rank = BIC)
+```
+```{r}
+#consistent AIC with Fishers information matrix
+model.sel(mod1,mod2,mod3,mod4, rank = CAICF) 
+```
+There also are `MuMin` functions for calculating model selection criteria, such as AIC, AICc, BIC and Mallows Cp, an ad hoc model selection criterion, not recommended. Here lets only compare two models using AIC.
+```{r compare models with AIC}
+#AIC
+AIC(mod1,mod2)
+```
+Note that above, the df is actually the number of model parameters, usually defined as K.
+
+The **relative importance of individual parameters** can also be examined using the model weights. Here, the Akaike weights for each model that contains the parameter of interest are summed. These have been defined as importance weights and you can obtain them from a `model.sel` object using the “importance” function.
+```{r Importance weights for individual predictor variables}
+# Importance weights for individual predictor variables
+# calculated using the importance function
+importance(out.put)
+```
+Looking at the output above, there is plenty of evidence for *distance* and *elev* (weights close to one), but much less for *pct.cover*. The number of candidate models in which a parameter occurs can have a big effect of the importance weight. For example, the intercept is included in all models, so the importance weight is 1 (hence it is never shown). In the above output, *pct.cover* is in only one model so it is weighted with caution.
+
+**Model averaging is a way to incorporate model selection uncertainty.** Here, the parameter estimates for each candidate model are weighted using their corresponding model weights and summed. There are two methods for model-averaging defined by Burnham and Anderson; where parameter estimates are averaged over all models in which predictor *Xi* occurs and where parameter estimates are averaged over all models, not just those in which predictor *Xi* occurs. 
+
+`MuMIn` function `model.avg` conducts both types of model averaging and reports the first type of model averaging as “subset” and the second type as “full".
+```{r Model Averaging}
+# Model average using all candidate models, always use revised.var = TRUE
+MA.ests<-model.avg(out.put, revised.var = TRUE)
+MA.ests
+```
+Another useful `MuMIn` function is `dredge`" However, you should only use is for exploratory purposes. Data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. So read the message below and users beware.
+```{r}
+## FOR EXPLORATORY PURPOSES ONLY!!! NEVER EVER DO THIS FOR A REAL
+## STUDY
+# fit model with all parameters
+all.parms<-lm(density~slope+distance+elev+ pct.cover, data = dater)
+
+# the dredge function fits all combinations
+# of the variables in the all.parms model fit above
+results<-dredge(all.parms)
+results
+```
+```{r}
+# grab best supported models
+subset(results, delta <5)
+```
+```{r}
+#grab best model
+subset(results, delta == 0)
+```
+```{r}
+# calculate variable importance weights
+importance(results)
+```
+Notice above that every parameter is in the same number of models.
+
+```{r make a figure using best-fit model}
+p1 <- ggplot(dater, aes(distance, density, colour = elev)) + 
+  geom_point() +
+  geom_smooth(method="lm")+
+  scale_x_continuous(limits = c(0, 700))
+
+p2 <- ggplot(dater, aes(elev, density, colour = distance)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_colour_gradientn(colours = terrain.colors(10, rev=TRUE)) +
+  scale_x_continuous(limits = c(0, 900))                         
+
+p1+p2
+```
+
+Note that this example probably needs a different error structure because prediction line drops to negative for distance
+values below 125. Lots of zeros suggests a poisson or zero-inflated poisson model might be a better fit. We will ignore this for now. 
+
+Peterson goes on with other examples, including GLMM, but we won't because the model selection framework becomes a bit more confusing. We will continue this more next time with a RIKZ example from Zurr et al. 2009.
+
+Examples of how this is used (Peterson) to study habitat selection by fishes:
+
+Reiman, B.E., J.T. Peterson, and D.L. Myers. 2006. Have Brook Trout Displaced Bull Trout in Streams of Central Idaho?: An Empirical Analysis of Distributions Along Elevation and Thermal Gradients Canadian Journal of Fisheries and Aquatic Sciences 63:63-78.
+
+McCargo, J.W. and J.T. Peterson. 2010. An evaluation of the influence of seasonal base flow and geomorphic stream characteristics on Coastal Plain stream fish assemblages. Transactions of the American Fisheries Society 139: 29-48.

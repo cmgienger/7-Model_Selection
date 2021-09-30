@@ -1,0 +1,215 @@
+---
+title: "Introduction to Model Selection"
+subtitle: Aho 2014 Washburn Example (Yellowstone)
+output:
+  html_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+packages_needed <- c("ggplot2", # graphics
+                     "dplyr",
+                     "lme4", # display() etc.
+                     "lmerTest", #gives us P-values
+                     "MuMIn", #models selection
+                     "asbio", #Washburn data
+                     "GGally", #to make pairs plot
+                     "performance", #model diagnostics
+                     "patchwork"
+                     )
+pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
+if(length(pk_to_install)>0 ){
+  install.packages(pk_to_install,repos="http://cran.r-project.org")
+}
+#lapply(packages_needed, require, character.only = TRUE)
+library(ggplot2)
+library(dplyr)
+library(lme4)
+library(lmerTest)
+library(ggfortify)
+library(MuMIn)
+library(asbio)
+library(GGally)
+library(performance)
+library(patchwork)
+```
+
+```{r include = FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r adjust width of console outputs}
+#many of our tables output in the console are really wide; expand limits [width] to fit them all in,
+#otherwise they wrap awkwardly
+options(width = 90)
+#https://bookdown.org/yihui/rmarkdown-cookbook/text-width.html
+
+#matrix(runif(100), ncol = 20) #test code to display adjusted width
+```
+
+
+A fundamental concern with many analyses is the selection of predictors that provide
+useful models. One approach is to identify models that are parsimonious, that is, simple
+but effective. Such an approach utilizes Occam’s Razor to “shave” away predictors from
+models whose complexity adds little to their explanatory power (Box and Jenkins 1970,
+Bozdogan 1987). A parsimonious model should:  
+
+1. Be based on (be subset from) a set of parameters identified by the investigator
+as biologically important, including, if necessary, covariates, interactions, and
+higher-order terms.
+2. Have as few parameters as possible (be as simple as possible, but no simpler).
+(Burnham and Anderson 2002, Crawley 2007)
+
+Aside from being philosophically objectionable and difficult to interpret, an overly
+complex model may simply provide a poor representation of reality due to overfitting.
+Some texts encourage the use of R~*adj*~^2^ as a parsimony criterion. This is because, while
+R2 will never decrease with the addition of variables, R~*adj*~^2^ can decrease in this framework.
+
+In simulations comparing 18 model selection algorithms, R~*adj*~^2^ consistently had the lowest efficiency
+for situations in which the “true” model belonged to a set of candidate models, and for situations
+when it did not (McQuarrie and Tsai 1998). Even worse are sources that encourage the use of P-values
+as a model selection criterion (i.e., choose the simplest model in which P < α).  
+
+Akaike (1973) proposed a biased estimator based on a maximized log-likelihood function. An
+adjusted estimator that accounts for this bias in the form of a penalty term is called the
+Akaike information criterion or AIC:
+
+$$ AIC = -2Log\mathcal{L} \ + \ 2p $$
+Model comparisons using AIC are often summarized by subtracting the AIC score of
+the optimal model from the scores of the other candidate models. From the perspective of 
+multimodel inference, the minimum AIC model may not be the “true” best model from a set of candidate models.
+Table below lists Δi cutoffs defining the support for the *i*th model.  
+\
+\
+![](images/AIC_values.jpeg){width=55%}
+\
+\
+A number of authors have noted that AIC tends to overfit models when sample sizes are
+small (e.g., Hurvich and Tsai 1980). The second-order “corrected” Akaike information criterion,
+AIC~c~, is robust to this problem and converges to AIC when n is large.
+
+AIC~c~ outperforms other parsimony criteria in a wide variety of model selection situations
+(McQuarrie and Tsai 1998). Burnham and Anderson (2002) recommend using AICc
+whenever n/p < 40.
+
+$$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
+\
+\
+**Washburn Example**: Aho and Weaver (2010) examined the effect of environmental characteristics on alpine vascular plant species richness on Mount Washburn (3124m) a volcanic peak in north-central Yellowstone National Park. The established 40 plots and measured species richness along with a suite of environmental variables; soil nitrogen, slope, aspect, rock cover and soil pH.
+
+https://www.rdocumentation.org/packages/asbio/versions/1.6-7/topics/wash.rich
+
+![](images/washburn1.jpg){width=300px} ![](images/washburn2.jpeg){width=400px}
+
+```{r import and reformat data}
+data("wash.rich") #attach data from the asbio library
+data.washburn <- rename(wash.rich,
+                        site = site,
+                        richness = Y,
+                        soil_N = X1,
+                        slope = X2,
+                        aspect = X3,
+                        cover = X4, #%surface rock cover
+                        pH = X5)
+```
+
+```{r check for colinearity, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
+ggpairs(data.washburn, columns = 3:7) + theme_bw()
+```
+
+Cover is highly correlated with both soil N and with aspect. This might not be a big deal, but we need to consider
+to what degree variables are co-linear; to what degree do they inform us about the same phenomenon of interest.  
+
+Other people disagree: *"The fact that some or all predictor variables are correlated among themselves does not, in general,
+inhibit our ability to obtain a good fit nor does it tend to affect inferences about mean responses or predictions
+of new observations.  —Applied Linear Statistical Models, p289, 4th Edition. (Neter, Wasserman, and Kutner)*  
+
+However, what we are really concerned with is **multicolinearity**.
+```{r fitmodel to look at Variance Inflation Factor}
+model_wash1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data.washburn)
+anova (model_wash1)
+```
+```{r check model for multicolinearity}
+performance::check_collinearity(model_wash1)
+#VIF are also translated to Tolerance values, where tolerance = 1/vif
+```
+Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
+
+Remember: “Pairwise correlations are not the problem. It is the conditional associations - not correlations - that matter.” (McElreath 2020, p. 169)  
+
+**Interpretation of the Variance Inflation Factor**  
+The variance inflation factor is a measure to analyze the magnitude of multicollinearity of model terms. A **VIF less than 5 indicates a low correlation of that predictor with other predictors**. A value between 5 and 10 indicates a moderate correlation, while VIF values larger than 10 are a sign for high, not tolerable correlation of model predictors (James et al. 2013). The Increased SE column in the output indicates how much larger the standard error is due to the association with other predictors conditional on the remaining variables in the model.
+
+**Multicollinearity and Interaction Terms**  
+If interaction terms are included in a model, high VIF values are expected. This portion of multicollinearity among the component terms of an interaction is also called "inessential ill-conditioning", which leads to inflated VIF values that are typically seen for models with interaction terms (Francoeur 2013).  
+
+For demonstration purposes will assume that we have *apriori* justification for including all predictor variables in our model; typically 1-2 papers supporting the role of each predictor in previous studies. Remember that data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. Our model including all predictor variables was already fit above `model_wash1`. Use `dredge` function to fit all combinations.
+```{r fit dredge model}
+# change na. action
+options(na.action = "na.fail") # otherwise blows up with NA values
+dredge_wash<-dredge(model_wash1)
+dredge_wash
+```
+There are 32 possible models based on additive combinations of variables (no interaction terms).  
+
+```{r best subset}
+# grab best supported models
+subset(dredge_wash, delta <5)
+```
+```{r equally-competitve models}
+#grab equally competitive models
+subset(dredge_wash, delta <2)
+```
+So there are five models that could be considered equally competitive (having explanatory power that is indistinguishable)
+But what variables are most influential in our models?
+```{r}
+# calculate variable importance weights
+importance(dredge_wash)
+```
+All five predictor variables show up in 16 of the 32 possible models, but they are not equally important.
+Looking at the output above, there is plenty of evidence for *cover* and *pH* (weights close to one), but much less for *aspect*, *soil_N*, or *slope*. The number of candidate models in which a parameter occurs can have a big effect of the importance weight. For example, the intercept is included in all models, so the importance weight is 1 (hence it is never shown).  
+
+**Model averaging is a way to incorporate model selection uncertainty.** Here, the parameter estimates for each candidate model are weighted using their corresponding model weights and summed. There are two methods for model-averaging defined by Burnham and Anderson; where parameter estimates are averaged over all models in which predictor *X~i~* occurs (subset) and where parameter estimates are averaged over all models, not just those in which predictor *X~i~* occurs (full). 
+
+http://atyre2.github.io/2017/06/16/rebutting_cade.html    
+
+
+`MuMIn` function `model.avg` conducts both types of model averaging.
+```{r Model Averaging}
+# Model average using all candidate models, always use revised.var = TRUE
+model.avg(dredge_wash, revised.var = TRUE)
+```
+
+
+Used to average regression coefficients across multiple models with the ultimate goal of capturing a variable’s overall “effect.”
+https://pubmed.ncbi.nlm.nih.gov/27874997/
+https://pubmed.ncbi.nlm.nih.gov/26594695/
+
+```{r I guess we should make a figure, fig.width=4, fig.height=10}
+w1 <- ggplot(data.washburn, aes(soil_N, richness)) + 
+  geom_point() +
+  geom_smooth(method="lm")
+  #scale_x_continuous(limits = c(0, 700))
+
+w2 <- ggplot(data.washburn, aes(slope, richness)) + 
+  geom_point() +
+  geom_smooth(method="lm")
+
+w3 <- ggplot(data.washburn, aes(aspect, richness)) + 
+  geom_point() +
+  geom_smooth(method="lm")
+
+w4 <- ggplot(data.washburn, aes(cover, richness)) + 
+  geom_point() +
+  geom_smooth(method="lm")
+
+w5 <- ggplot(data.washburn, aes(pH, richness)) + 
+  geom_point() +
+  geom_smooth(method="lm")
+
+w1 / w2 / w3 / w4 / w5 #patchwork notation for figure alignment
+
+```
+```
+

@@ -1,0 +1,89 @@
+---
+title: "Model Selection"
+subtitle: "GPA Example" 
+output:
+  html_document:
+    toc: yes
+---
+```{r setup2, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+packages_needed <- c("ggplot2",
+                     "patchwork",
+                     "MuMIn"
+                     )
+pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
+if(length(pk_to_install)>0 ){
+  install.packages(pk_to_install,repos="http://cran.r-project.org")
+}
+#lapply(packages_needed, require, character.only = TRUE)
+library(ggplot2)
+library(patchwork)
+library(MuMIn)
+```
+
+```{r, include=FALSE}
+# change na. action
+options(na.action = "na.fail")
+```
+GPA example from Graybill and Iyer (1994); worked in Burnham and Anderson (2002) p. 226
+SAT scores for Math and Verbal sections; High School GPAs for Math and English
+```{r}
+GPA_data <- read.csv("data/GPA.txt", sep="")
+```
+
+```{r fig.height=8, fig.width=8}
+#check for co-linearity
+pairs(GPA_data[,3:6], lower.panel = NULL)
+```
+```{r look at the correlation matrix}
+correlation.matrix <- cor(GPA_data[,3:6])
+round(correlation.matrix, 2)
+```
+
+No obvious colinearity among variables. Anything above ~0.5 we should look at, but OK for now.
+
+```{r}
+# fit the full model with all parameters (sometimes called 'global')
+GPA.all.parms<-lm(GPA ~ SATmath + SATverbal + HSmath + HSverbal, data = GPA_data)
+
+# the dredge function fits all combinations
+# of the variables in the GPA.all.parms model fit above
+results<-MuMIn::dredge(GPA.all.parms) # note use of 'MuMIn' package
+results
+```
+
+```{r}
+# grab best supported models
+subset(results, delta <5)
+```
+Models 14 and 13 have delta AICc <2. Model 14 is about 1.69 times more likely than Model 13 (0.485/0.287=1.69).
+```{r}
+# calculate variable importance weights
+MuMIn::importance(results)
+```
+Tells us that HSverbal is not really a useful predictor, and it is absent in all of the 3 top models.
+
+Only fit models without HSverbal.
+
+```{r}
+results<-dredge(GPA.all.parms, subset= !(HSverbal))
+results
+```
+Again, the model selection results without including HSverbal are the same as those including HSverbal; Models 13 and 14 have about equal explanatory power (delta AICc <2). The inclusion of HS math does not explain additional variation above what is explained by the other three variables; inclusion of HSmath means a 1 parameter "penalty". Model 14 is about 1.69 times more likely than Model 13 (0.532/0.315=1.69). This re-scaled result is the same as before. 
+
+```{r make a figure using best-fit model}
+#trying to represent combinations of our three most important variables on predicting GPA
+p3 <- ggplot(GPA_data, aes(SATmath, GPA, colour = SATverbal)) + 
+  geom_point(size=3) +
+  geom_smooth(method="lm")
+
+p4 <- ggplot(GPA_data, aes(SATverbal, GPA, colour = HSmath)) + 
+  geom_point(size=3) +
+  geom_smooth(method="lm") +
+  scale_colour_gradientn(colours = heat.colors(10, rev=TRUE))
+                     
+p3+p4 #uses 'patchwork' library to put plots next to each other
+```
+
+"Dredging" used here is just an example for comparing models. Dregding is known to prefer over-complex models.
+https://dynamicecology.wordpress.com/2015/05/21/why-aic-appeals-to-ecologists-lowest-instincts/
