@@ -281,10 +281,10 @@ sel.table</code></pre>
 ## mod4 slope + distance + elev 5 863.94 -1717.65  2.007  0.264
 ## mod3        slope + distance 4 860.13 -1712.10  7.554  0.016
 ## mod2       slope + pct.cover 4 819.49 -1630.82 88.830  0.000</code></pre>
-<p>Now that’s more like it. Models are from best to worst fitting. You can usually drop AICc if the Log Likelihood (logLik) is in the table, but we’ll leave it here. This is about ready for a report, so let’s write it to a comma separated file.</p>
+<p>Now that’s more like it. Models are from best to worst fitting. You can usually drop AIC<sub>c</sub> if the Log Likelihood (logLik) is in the table, but we’ll leave it here. This is about ready for a report, so let’s write it to a comma separated file.</p>
 <pre class="r"><code># write to a file, here a comma separated values format
 write.csv(sel.table,&quot;tables/My model selection table.csv&quot;, row.names = F)</code></pre>
-<p>The default model selection criteria for all <code>MuMIn</code> functions is AICc. If you don’t like or have another favorite, you can specify that method using the “rank” option in <code>model.sel</code>. Below is code for selecting models using Bayesian or Schwartz’s information criteria (BIC) consistent AIC with Fishers information matrix (CAICF) and quasi-AIC (QAIC, more on this later below).</p>
+<p>The default model selection criteria for all <code>MuMIn</code> functions is AIC<sub>c</sub>. If you don’t like or have another favorite, you can specify that method using the “rank” option in <code>model.sel</code>. Below is code for selecting models using Bayesian or Schwartz’s information criteria (BIC) consistent AIC with Fishers information matrix (CAICF) and quasi-AIC (QAIC, more on this later below).</p>
 <pre class="r"><code># model selection table; sorted by BIC
 model.sel(mod1,mod2,mod3,mod4, rank = BIC)</code></pre>
 <pre><code>## Model selection table 
@@ -303,7 +303,7 @@ model.sel(mod1,mod2,mod3,mod4, rank = CAICF) </code></pre>
 ## mod4 -0.013080 5.181e-05 2.002e-05           -0.01096  5 863.944 -1619.2 23.66  0.000
 ## mod2  0.003614                     2.777e-05  0.05374  4 819.492 -1565.5 77.37  0.000
 ## Models ranked by CAICF(x)</code></pre>
-<p>There also are <code>MuMin</code> functions for calculating model selection criteria, such as AIC, AICc, BIC and Mallows Cp, an ad hoc model selection criterion, not recommended. Here lets only compare two models using AIC.</p>
+<p>There also are <code>MuMin</code> functions for calculating model selection criteria, such as AIC, AIC<sub>c</sub>, BIC and Mallows Cp, an ad hoc model selection criterion, not recommended. Here lets only compare two models using AIC.</p>
 <pre class="r"><code>#AIC
 AIC(mod1,mod2)</code></pre>
 <pre><code>##      df       AIC
@@ -334,7 +334,7 @@ MA.ests</code></pre>
 ##        (Intercept)     distance         elev        slope    pct.cover
 ## full   -0.01322053 5.191484e-05 1.846475e-05 -0.001469396 1.026921e-24
 ## subset -0.01322053 5.191484e-05 1.877402e-05 -0.005241959 2.777260e-05</code></pre>
-<p>Another useful <code>MuMIn</code> function is <code>dredge</code>” However, you should only use is for exploratory purposes. Data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. So read the message below and users beware.</p>
+<p>Another useful <code>MuMIn</code> function is <code>dredge</code>. However, you should only use is for exploratory purposes. Data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. So read the message below and users beware.</p>
 <pre class="r"><code>## FOR EXPLORATORY PURPOSES ONLY!!! NEVER EVER DO THIS FOR A REAL
 ## STUDY
 # fit model with all parameters

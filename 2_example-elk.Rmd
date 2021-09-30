@@ -122,12 +122,12 @@ sel.table
 sel.table<-sel.table[,c(6,1,2,3,4,5)] #specify order of columns
 sel.table
 ```
-Now that’s more like it. Models are from best to worst fitting. You can usually drop AICc if the Log Likelihood (logLik) is in the table, but we’ll leave it here. This is about ready for a report, so let’s write it to a comma separated file.
+Now that’s more like it. Models are from best to worst fitting. You can usually drop AIC~c~ if the Log Likelihood (logLik) is in the table, but we’ll leave it here. This is about ready for a report, so let’s write it to a comma separated file.
 ```{r write AIC table to file}
 # write to a file, here a comma separated values format
 write.csv(sel.table,"tables/My model selection table.csv", row.names = F)
 ```
-The default model selection criteria for all `MuMIn` functions is AICc. If you don’t like or have another favorite, you can specify that method using the “rank” option in `model.sel`. Below is code for selecting models using Bayesian or Schwartz’s information criteria (BIC) consistent AIC with Fishers information matrix (CAICF) and quasi-AIC (QAIC, more on this later below).
+The default model selection criteria for all `MuMIn` functions is AIC~c~. If you don’t like or have another favorite, you can specify that method using the “rank” option in `model.sel`. Below is code for selecting models using Bayesian or Schwartz’s information criteria (BIC) consistent AIC with Fishers information matrix (CAICF) and quasi-AIC (QAIC, more on this later below).
 ```{r}
 # model selection table; sorted by BIC
 model.sel(mod1,mod2,mod3,mod4, rank = BIC)
@@ -136,7 +136,7 @@ model.sel(mod1,mod2,mod3,mod4, rank = BIC)
 #consistent AIC with Fishers information matrix
 model.sel(mod1,mod2,mod3,mod4, rank = CAICF) 
 ```
-There also are `MuMin` functions for calculating model selection criteria, such as AIC, AICc, BIC and Mallows Cp, an ad hoc model selection criterion, not recommended. Here lets only compare two models using AIC.
+There also are `MuMin` functions for calculating model selection criteria, such as AIC, AIC~c~, BIC and Mallows Cp, an ad hoc model selection criterion, not recommended. Here lets only compare two models using AIC.
 ```{r compare models with AIC}
 #AIC
 AIC(mod1,mod2)
@@ -159,7 +159,7 @@ Looking at the output above, there is plenty of evidence for *distance* and *ele
 MA.ests<-model.avg(out.put, revised.var = TRUE)
 MA.ests
 ```
-Another useful `MuMIn` function is `dredge`" However, you should only use is for exploratory purposes. Data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. So read the message below and users beware.
+Another useful `MuMIn` function is `dredge`. However, you should only use is for exploratory purposes. Data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. So read the message below and users beware.
 ```{r}
 ## FOR EXPLORATORY PURPOSES ONLY!!! NEVER EVER DO THIS FOR A REAL
 ## STUDY
