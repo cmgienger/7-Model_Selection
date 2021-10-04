@@ -39,7 +39,7 @@ library(patchwork)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
-```{r adjust width of console outputs}
+```{r adjust width of console outputs, include=FALSE}
 #many of our tables output in the console are really wide; expand limits [width] to fit them all in,
 #otherwise they wrap awkwardly
 options(width = 90)
@@ -64,7 +64,7 @@ higher-order terms.
 Aside from being philosophically objectionable and difficult to interpret, an overly
 complex model may simply provide a poor representation of reality due to overfitting.
 Some texts encourage the use of R~*adj*~^2^ as a parsimony criterion. This is because, while
-R2 will never decrease with the addition of variables, R~*adj*~^2^ can decrease in this framework.
+R^2^ will never decrease with the addition of variables, R~*adj*~^2^ can decrease in this framework.
 
 In simulations comparing 18 model selection algorithms, R~*adj*~^2^ consistently had the lowest efficiency
 for situations in which the “true” model belonged to a set of candidate models, and for situations
@@ -79,7 +79,7 @@ $$ AIC = -2Log\mathcal{L} \ + \ 2p $$
 Model comparisons using AIC are often summarized by subtracting the AIC score of
 the optimal model from the scores of the other candidate models. From the perspective of 
 multimodel inference, the minimum AIC model may not be the “true” best model from a set of candidate models.
-Table below lists Δi cutoffs defining the support for the *i*th model.  
+Table below lists Δ~i~ cutoffs defining the support for the *i*th model.  
 \
 \
 ![](images/AIC_values.jpeg){width=55%}
@@ -118,17 +118,14 @@ data.washburn <- rename(wash.rich,
 ggpairs(data.washburn, columns = 3:7) + theme_bw()
 ```
 
-Cover is highly correlated with both soil N and with aspect. This might not be a big deal, but we need to consider
-to what degree variables are co-linear; to what degree do they inform us about the same phenomenon of interest.  
+Cover is highly correlated with both soil N and with aspect. This might not be a big deal, but we need to consider to what degree variables are co-linear; to what degree do they inform us about the same phenomenon of interest.  
 
-Other people disagree: *"The fact that some or all predictor variables are correlated among themselves does not, in general,
-inhibit our ability to obtain a good fit nor does it tend to affect inferences about mean responses or predictions
-of new observations.  —Applied Linear Statistical Models, p289, 4th Edition. (Neter, Wasserman, and Kutner)*  
+Other people disagree: *"The fact that some or all predictor variables are correlated among themselves does not, in general, inhibit our ability to obtain a good fit nor does it tend to affect inferences about mean responses or predictions of new observations.  —Applied Linear Statistical Models, p289, 4th Edition. (Neter, Wasserman, and Kutner)*  
 
-However, what we are really concerned with is **multicolinearity**.
+However, what we are really concerned with is **multicolinearity**. Multicolinearity is really bad and greatly impacts model interpretation.
 ```{r fitmodel to look at Variance Inflation Factor}
 model_wash1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data.washburn)
-anova (model_wash1)
+anova (model_wash1) #coefficients of the full model
 ```
 ```{r check model for multicolinearity}
 performance::check_collinearity(model_wash1)
@@ -185,6 +182,12 @@ model.avg(dredge_wash, revised.var = TRUE)
 Used to average regression coefficients across multiple models with the ultimate goal of capturing a variable’s overall “effect.”
 https://pubmed.ncbi.nlm.nih.gov/27874997/
 https://pubmed.ncbi.nlm.nih.gov/26594695/
+
+```{r look at the averaged coefficients for equally competitive models}
+summary(model.avg(dredge_wash, subset = delta < 2))
+```
+
+Can now report the model averaged coefficients for the predictor variables individual effects on species richness.
 
 ```{r I guess we should make a figure, fig.width=4, fig.height=10}
 w1 <- ggplot(data.washburn, aes(soil_N, richness)) + 
