@@ -268,7 +268,7 @@ model_comparison</code></pre>
 <div id="step-4-interpret-model-output" class="section level4">
 <h4>Step 4: Interpret model output</h4>
 <p>Summarizing the output, we see that increasing both NAP and Exposure results in a decrease in species richness (<em>P</em> &lt; 0.05). There is also a nearly significant interaction between NAP and Exposure (I wouldn’t interpret this since <em>P</em> &gt; 0.05). Finally, while Beach is included in our model as a random effect, notice how little variation is attributed to differences between beaches. The only difference is that our current model includes Exposure as a fixed effect. This suggests that much of the variation between was likely attributable to differences in exposure, which is now being captured by the fixed effects.</p>
-<pre class="r"><code># Summarize best-fit model
+<pre class="r"><code># Summarize best-fit model 
 summary(update(mixed_model_IntOnly_Full, REML = TRUE)) #revert back to REML rather than ML</code></pre>
 <pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [&#39;lmerModLmerTest&#39;]
 ## Formula: Richness ~ NAP * Exposure + (1 | Beach)

@@ -150,7 +150,7 @@ Based on the output above, it looks like the model that includes NAP, Exposure, 
 Summarizing the output, we see that increasing both NAP and Exposure results in a decrease in species richness (_P_ < 0.05). There is also a nearly significant interaction between NAP and Exposure (I wouldn't interpret this since _P_ > 0.05). Finally, while Beach is included in our model as a random effect, notice how little variation is attributed to differences between beaches. The only difference is that our current model includes Exposure as a fixed effect. This suggests that much of the variation between was likely attributable to differences in exposure, which is now being captured by the fixed effects.
 
 ```{r}
-# Summarize best-fit model
+# Summarize best-fit model 
 summary(update(mixed_model_IntOnly_Full, REML = TRUE)) #revert back to REML rather than ML
 ```
 
