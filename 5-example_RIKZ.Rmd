@@ -49,7 +49,7 @@ of the beach) that might affect benthic fauna. Nine beaches were chosen by strat
 
 **Richness** is the number of benthic taxa present.  
 **NAP** is the height of the sampling station relative to mean sea level.  
-**Exposure** is an index that is composed of wave action, length of the surf zone, slope, grain size and the depth of the anaerobic layer.
+**Exposure** is an index that is composed of wave action, length of the surf zone, slope, grain size, and depth of the anaerobic layer.
 
 ![](images/RIKZ_fig_2.png)
 
@@ -72,13 +72,13 @@ We generated 3 models:
 
 2. A **random intercept and slope model** with NAP as a fixed effect and a random effect allowing both the intercept (i.e. richness) and slope (i.e. response of richness to NAP) to vary across beaches; and 
 
-3. An **intercept only model** with no fixed effects but allowing for variation in richness across beaches. In this lecture, we'll create similar models with random intercepts and random intercepts + slopes but we'll additionally include Exposure and the NAP by Exposure interaction as additional fixed-effects. Let's load in the RIKZ data.
+3. An **intercept only model** with no fixed effects but allowing for variation in richness across beaches. We'll create similar models with random intercepts and random intercepts + slopes, but will also include Exposure and the NAP by Exposure interaction as additional fixed-effects.
 
 ![](images/random_int_slope.jpg)
 
-Given these 3 models, we may be interested in knowing which one best fits our observed so that we can interpret this model to draw inferences about our population. To do this, we can follow the guidelines laid out in Zuur _et al._ (2009):
+Given these 3 models, we may be interested in knowing which one best fits our observed data so that we can interpret this model to draw inferences about our population. To do this, we can follow the guidelines laid out in Zuur _et al._ (2009):
 
-1. **Create a saturated model** that includes all fixed effects (and their interactions) and random effects. If you can't include all fixed effects, you should select those that you think are most likely to be important based on your knowledge of the system at hand.
+1. **Create a saturated model** that includes all fixed effects (and their interactions) and random effects. If you can't include all fixed effects, you should select those that you think are most likely to be important based on your knowledge of the system at hand. Note: inclusion of too many terms in the model will likely cause a convergence error (singular) unless you have LOTS of data.
 
 2. Using the saturated model, **optimize the random-effect structure** of the model. Compare models with saturated fixed effects structure with models of differing random effect structure. Models should be fit using Restricted Maximum Likelihood (i.e. `REML = TRUE`). The optimal random effect structure is the one that provides the lowest AIC. Note that some common sense is needed here: you should not remove random effects if they are included to specifically account for non-independence in your data (i.e. nestedness, see lecture 8)
 
@@ -88,10 +88,9 @@ Given these 3 models, we may be interested in knowing which one best fits our ob
 
 Note that this approach to model selection can also be applied to models that lack random effects (e.g. simple linear regression). In such cases, you don't need to worry about random effects and can go ahead and just optimize the fixed effects. You also don't need to worry about ML vs. REML.
 
-Let's try this with some real data. Let's create 2 models, but this time let's include Exposure and the interaction between NAP and Exposure as additional effects. 
-
+Let's try this with some real data; let's include Exposure and the interaction between NAP and Exposure as additional effects. 
 ```{r}
-# Define 2 models. Fit both with REML.
+# Define 2 models (Random Intercept Only and Random Intercept and Random Slope). Fit both with REML.
 mixed_model_IntOnly <- lmer(Richness ~ NAP*Exposure + (1|Beach), REML = TRUE, 
                              data = rikz_data)
 mixed_model_IntSlope <- lmer(Richness ~ NAP*Exposure + (1 + NAP|Beach), REML = TRUE, 
@@ -135,7 +134,11 @@ mixed_model_IntOnly_NoFix <- lmer(Richness ~ 1 + (1|Beach), REML = FALSE, data =
 ```
 
 ```{r compare models}
-model_comparison<-model.sel(mixed_model_IntOnly_Full, mixed_model_IntOnly_NoInter, mixed_model_IntOnly_NAP, mixed_model_IntOnly_Exp, mixed_model_IntOnly_NoFix)
+model_comparison<-model.sel(mixed_model_IntOnly_Full,
+                            mixed_model_IntOnly_NoInter,
+                            mixed_model_IntOnly_NAP,
+                            mixed_model_IntOnly_Exp,
+                            mixed_model_IntOnly_NoFix)
 
 model_comparison
 ```
@@ -144,11 +147,10 @@ Based on the output above, it looks like the model that includes NAP, Exposure, 
 
 #### Step 4: Interpret model output
 
-Summarizing the output, we see that increasing both NAP and Exposure results in a decrease in species richness (_P_ < 0.05). There is also a nearly significant interaction between NAP and Exposure (I wouldn't interpret this since _P_ > 0.05). Finally, while Beach is included in our model as a random effect, notice how little variation is attributed to differences between beaches relative to the model we ran in lecture 8. The only difference is that our current model includes Exposure as a fixed effect. This suggests that much of the variation between beaches in lecture 8 was likely attributable to differences in exposure, which is now being captured by the fixed effects.
+Summarizing the output, we see that increasing both NAP and Exposure results in a decrease in species richness (_P_ < 0.05). There is also a nearly significant interaction between NAP and Exposure (I wouldn't interpret this since _P_ > 0.05). Finally, while Beach is included in our model as a random effect, notice how little variation is attributed to differences between beaches. The only difference is that our current model includes Exposure as a fixed effect. This suggests that much of the variation between was likely attributable to differences in exposure, which is now being captured by the fixed effects.
 
 ```{r}
 # Summarize best-fit model
 summary(update(mixed_model_IntOnly_Full, REML = TRUE)) #revert back to REML rather than ML
 ```
-
 
