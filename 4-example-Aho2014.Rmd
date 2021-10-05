@@ -58,8 +58,7 @@ Bozdogan 1987). A parsimonious model should:
 1. Be based on (be subset from) a set of parameters identified by the investigator
 as biologically important, including, if necessary, covariates, interactions, and
 higher-order terms.
-2. Have as few parameters as possible (be as simple as possible, but no simpler).
-(Burnham and Anderson 2002, Crawley 2007)
+2. Have as few parameters as possible (be as simple as possible, but no simpler; Burnham and Anderson 2002, Crawley 2007)
 
 Aside from being philosophically objectionable and difficult to interpret, an overly
 complex model may simply provide a poor representation of reality due to overfitting.
@@ -132,9 +131,11 @@ performance::check_collinearity(model_wash1)
 #VIF are also translated to Tolerance values, where tolerance = 1/vif
 ```
 Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
-
-Remember: “Pairwise correlations are not the problem. It is the conditional associations - not correlations - that matter.” (McElreath 2020, p. 169)  
-
+\
+\
+<span style="color:blue">Remember: “Pairwise correlations are not the problem. It is the conditional associations - not correlations - that matter.” (McElreath 2020, p. 169)</span>  
+\
+\
 **Interpretation of the Variance Inflation Factor**  
 The variance inflation factor is a measure to analyze the magnitude of multicollinearity of model terms. A **VIF less than 5 indicates a low correlation of that predictor with other predictors**. A value between 5 and 10 indicates a moderate correlation, while VIF values larger than 10 are a sign for high, not tolerable correlation of model predictors (James et al. 2013). The Increased SE column in the output indicates how much larger the standard error is due to the association with other predictors conditional on the remaining variables in the model.
 
@@ -162,7 +163,7 @@ So there are five models that could be considered equally competitive (having ex
 But what variables are most influential in our models?
 ```{r}
 # calculate variable importance weights
-importance(dredge_wash)
+importance(dredge_wash) #notice this is the global model, not just the competitive model set
 ```
 All five predictor variables show up in 16 of the 32 possible models, but they are not equally important.
 Looking at the output above, there is plenty of evidence for *cover* and *pH* (weights close to one), but much less for *aspect*, *soil_N*, or *slope*. The number of candidate models in which a parameter occurs can have a big effect of the importance weight. For example, the intercept is included in all models, so the importance weight is 1 (hence it is never shown).  
@@ -183,11 +184,14 @@ Used to average regression coefficients across multiple models with the ultimate
 https://pubmed.ncbi.nlm.nih.gov/27874997/
 https://pubmed.ncbi.nlm.nih.gov/26594695/
 
-```{r look at the averaged coefficients for equally competitive models}
-summary(model.avg(dredge_wash, subset = delta < 2))
-```
 
 Can now report the model averaged coefficients for the predictor variables individual effects on species richness.
+```{r look at the averaged coefficients}
+summary(model.avg(dredge_wash))
+#summary(model.avg(dredge_wash, subset = delta < 2)) # if you just want to look at competitive models
+#there is justification for just looking at the competitive models; trying to narrow things down.
+```
+
 
 ```{r I guess we should make a figure, fig.width=4, fig.height=10}
 w1 <- ggplot(data.washburn, aes(soil_N, richness)) + 
@@ -214,5 +218,6 @@ w5 <- ggplot(data.washburn, aes(pH, richness)) +
 w1 / w2 / w3 / w4 / w5 #patchwork notation for figure alignment
 
 ```
-```
+
+
 
