@@ -187,11 +187,12 @@ https://pubmed.ncbi.nlm.nih.gov/26594695/
 
 Can now report the model averaged coefficients for the predictor variables individual effects on species richness.
 ```{r look at the averaged coefficients}
-summary(model.avg(dredge_wash))
-#summary(model.avg(dredge_wash, subset = delta < 2)) # if you just want to look at competitive models
-#there is justification for just looking at the competitive models; trying to narrow things down.
+#summary(model.avg(dredge_wash)) # if you want to average across all models, both competitive and non-competitive
+summary(model.avg(dredge_wash, subset = delta < 2)) # if you just want to look only at competitive models, which
+#is the point of model selection.
+#there is justification for looking only at the competitive models; trying to narrow things down.
 ```
-
+Coefficients average across all models (full average) is probably better; more conservative. In this example the interpretation doesn't really change depending on technique for model averaging coefficients.
 
 ```{r I guess we should make a figure, fig.width=4, fig.height=10}
 w1 <- ggplot(data.washburn, aes(soil_N, richness)) + 
