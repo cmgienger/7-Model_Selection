@@ -9,7 +9,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2",
                      "patchwork",
-                     "MuMIn"
+                     "MuMIn",
+                     "olsrr"
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -19,6 +20,7 @@ if(length(pk_to_install)>0 ){
 library(ggplot2)
 library(patchwork)
 library(MuMIn)
+library(olsrr) #added variable plot
 ```
 
 ```{r, include=FALSE}
@@ -45,7 +47,27 @@ No obvious colinearity among variables. Anything above ~0.5 we should look at, b
 ```{r}
 # fit the full model with all parameters (sometimes called 'global')
 GPA.all.parms<-lm(GPA ~ SATmath + SATverbal + HSmath + HSverbal, data = GPA_data)
+```
 
+Added variable plots are a quick diagnosis to see what variables in the global
+model are likely to be influential.
+
+```{r message=FALSE, warning=FALSE}
+olsrr::ols_plot_added_variable(GPA.all.parms)
+```
+
+https://olsrr.rsquaredacademy.com/articles/regression_diagnostics
+
+Added variable plot provides information about the marginal (adjusted) importance of a predictor variable 𝑋
+, given the other predictor variables already in the model. It shows the marginal importance of the variable in reducing the residual (unexplained) variability.
+
+The added variable plot was introduced by Mosteller and Tukey (1977). It enables us to visualize the regression coefficient of a new variable being considered to be included in a model. The plot can be constructed for each predictor variable.
+
+A strong pos/neg relationship in the added variable plot indicates the increased importance of the contribution of X to the model **already containing the other predictors**.
+
+In this case *HSverbal* doesn't look like it contributes much explanatory power to the full model (very flat slope).
+
+```{r}
 # the dredge function fits all combinations
 # of the variables in the GPA.all.parms model fit above
 results<-MuMIn::dredge(GPA.all.parms) # note use of 'MuMIn' package
@@ -59,7 +81,7 @@ subset(results, delta <5)
 Models 14 and 13 have delta AICc <2. Model 14 is about 1.69 times more likely than Model 13 (0.485/0.287=1.69).
 ```{r}
 # calculate variable importance weights
-MuMIn::importance(results)
+MuMIn::sw(results)
 ```
 Tells us that HSverbal is not really a useful predictor, and it is absent in all of the 3 top models.
 
@@ -71,7 +93,7 @@ results
 ```
 Again, the model selection results without including HSverbal are the same as those including HSverbal; Models 13 and 14 have about equal explanatory power (delta AICc <2). The inclusion of HS math does not explain additional variation above what is explained by the other three variables; inclusion of HSmath means a 1 parameter "penalty". Model 14 is about 1.69 times more likely than Model 13 (0.532/0.315=1.69). This re-scaled result is the same as before. 
 
-```{r make a figure using best-fit model}
+```{r make a figure using best-fit model, message=FALSE, warning=FALSE}
 #trying to represent combinations of our three most important variables on predicting GPA
 p3 <- ggplot(GPA_data, aes(SATmath, GPA, colour = SATverbal)) + 
   geom_point(size=3) +

@@ -108,7 +108,7 @@ sel.table
 # number of parameters (df) should be K
 names(sel.table)[1] = "K"
 
-## lets be sure to put the model names in a column
+## lets be sure to put the model names in a new column
 sel.table$Model<-rownames(sel.table)
 
 # replace Model name with formulas little tricky so be careful
@@ -117,6 +117,7 @@ for(i in 1:nrow(sel.table)) sel.table$Model[i]<- as.character(formula(paste(sel.
 # let's see what is in there
 sel.table
 ```
+
 ```{r reorder columns}
 #little reordering of columns
 sel.table<-sel.table[,c(6,1,2,3,4,5)] #specify order of columns
@@ -146,8 +147,9 @@ Note that above, the df is actually the number of model parameters, usually defi
 The **relative importance of individual parameters** can also be examined using the model weights. Here, the Akaike weights for each model that contains the parameter of interest are summed. These have been defined as importance weights and you can obtain them from a `model.sel` object using the “importance” function.
 ```{r Importance weights for individual predictor variables}
 # Importance weights for individual predictor variables
-# calculated using the importance function
-importance(out.put)
+# calculated using the `sw` function
+
+sw(out.put) #Per-variable sum of model weights
 ```
 Looking at the output above, there is plenty of evidence for *distance* and *elev* (weights close to one), but much less for *pct.cover*. The number of candidate models in which a parameter occurs can have a big effect of the importance weight. For example, the intercept is included in all models, so the importance weight is 1 (hence it is never shown). In the above output, *pct.cover* is in only one model so it is weighted with caution.
 
@@ -160,7 +162,7 @@ MA.ests<-model.avg(out.put, revised.var = TRUE)
 MA.ests
 ```
 Another useful `MuMIn` function is `dredge`. However, you should only use is for exploratory purposes. Data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. So read the message below and users beware.
-```{r}
+```{r All parameters model}
 ## FOR EXPLORATORY PURPOSES ONLY!!! NEVER EVER DO THIS FOR A REAL
 ## STUDY
 # fit model with all parameters
@@ -171,21 +173,24 @@ all.parms<-lm(density~slope+distance+elev+ pct.cover, data = dater)
 results<-dredge(all.parms)
 results
 ```
+
 ```{r}
 # grab best supported models
 subset(results, delta <5)
 ```
+
 ```{r}
 #grab best model
 subset(results, delta == 0)
 ```
+
 ```{r}
 # calculate variable importance weights
-importance(results)
+sw(results)
 ```
 Notice above that every parameter is in the same number of models.
 
-```{r make a figure using best-fit model}
+```{r make a figure using best-fit model, message=FALSE, warning=FALSE}
 p1 <- ggplot(dater, aes(distance, density, colour = elev)) + 
   geom_point() +
   geom_smooth(method="lm")+
@@ -200,8 +205,7 @@ p2 <- ggplot(dater, aes(elev, density, colour = distance)) +
 p1+p2
 ```
 
-Note that this example probably needs a different error structure because prediction line drops to negative for distance
-values below 125. Lots of zeros suggests a poisson or zero-inflated poisson model might be a better fit. We will ignore this for now. 
+Note that this example probably needs a different error structure because prediction line drops to negative for distance values below 125. Lots of zeros suggests a poisson or zero-inflated poisson model might be a better fit. We will ignore this for now. 
 
 Peterson goes on with other examples, including GLMM, but we won't because the model selection framework becomes a bit more confusing. We will continue this more next time with a RIKZ example from Zurr et al. 2009.
 
