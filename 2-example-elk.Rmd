@@ -133,6 +133,7 @@ The default model selection criteria for all `MuMIn` functions is AIC~c~. If you
 # model selection table; sorted by BIC
 model.sel(mod1,mod2,mod3,mod4, rank = BIC)
 ```
+
 ```{r}
 #consistent AIC with Fishers information matrix
 model.sel(mod1,mod2,mod3,mod4, rank = CAICF) 

@@ -16,7 +16,8 @@ packages_needed <- c("ggplot2", # graphics
                      "asbio", #Washburn data
                      "GGally", #to make pairs plot
                      "performance", #model diagnostics
-                     "patchwork"
+                     "patchwork",
+                     "olsrr"
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -33,6 +34,7 @@ library(asbio)
 library(GGally)
 library(performance)
 library(patchwork)
+library(olsrr)
 ```
 
 ```{r include = FALSE}
@@ -122,15 +124,27 @@ Cover is highly correlated with both soil N and with aspect. This might not be a
 Other people disagree: *"The fact that some or all predictor variables are correlated among themselves does not, in general, inhibit our ability to obtain a good fit nor does it tend to affect inferences about mean responses or predictions of new observations.  —Applied Linear Statistical Models, p289, 4th Edition. (Neter, Wasserman, and Kutner)*  
 
 However, what we are really concerned with is **multicolinearity**. Multicolinearity is really bad and greatly impacts model interpretation.
+
 ```{r fitmodel to look at Variance Inflation Factor}
 model_wash1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data.washburn)
 anova (model_wash1) #coefficients of the full model
 ```
+
+```{r message=FALSE, warning=FALSE}
+olsrr::ols_plot_added_variable(model_wash1)
+```
+
 ```{r check model for multicolinearity}
 performance::check_collinearity(model_wash1)
 #VIF are also translated to Tolerance values, where tolerance = 1/vif
 ```
-Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
+```{r check model, fig.height=8}
+performance::check_model(model_wash1)
+```
+
+\
+\
+Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, **multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low**. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
 \
 \
 <span style="color:blue">Remember: “Pairwise correlations are not the problem. It is the conditional associations - not correlations - that matter.” (McElreath 2020, p. 169)</span>  
@@ -163,7 +177,7 @@ So there are five models that could be considered equally competitive (having ex
 But what variables are most influential in our models?
 ```{r}
 # calculate variable importance weights
-importance(dredge_wash) #notice this is the global model, not just the competitive model set
+sw(dredge_wash) #notice this is the global model, not just the competitive model set
 ```
 All five predictor variables show up in 16 of the 32 possible models, but they are not equally important.
 Looking at the output above, there is plenty of evidence for *cover* and *pH* (weights close to one), but much less for *aspect*, *soil_N*, or *slope*. The number of candidate models in which a parameter occurs can have a big effect of the importance weight. For example, the intercept is included in all models, so the importance weight is 1 (hence it is never shown).  

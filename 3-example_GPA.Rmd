@@ -27,11 +27,19 @@ library(olsrr) #added variable plot
 # change na. action
 options(na.action = "na.fail")
 ```
-GPA example from Graybill and Iyer (1994); worked in Burnham and Anderson (2002) p. 226
-SAT scores for Math and Verbal sections; High School GPAs for Math and English
+GPA example from Graybill and Iyer (1994); worked in Burnham and Anderson (2002; p. 226)
+
+SAT scores for Math and Verbal sections; High School GPAs for Math and English; GPA is the first-year 
+college Grade Point Average (GPA).
+
 ```{r}
 GPA_data <- read.csv("data/GPA.txt", sep="")
 ```
+
+```{r preview data}
+head(GPA_data)
+```
+
 
 ```{r fig.height=8, fig.width=8}
 #check for co-linearity
@@ -42,7 +50,7 @@ correlation.matrix <- cor(GPA_data[,3:6])
 round(correlation.matrix, 2)
 ```
 
-No obvious colinearity among variables. Anything above ~0.5 we should look at, but OK for now.
+Some apparent colinearity among variables (HSverbal and SATmath). Anything above ~0.5 we should look at, but OK for now.
 
 ```{r}
 # fit the full model with all parameters (sometimes called 'global')
@@ -58,8 +66,7 @@ olsrr::ols_plot_added_variable(GPA.all.parms)
 
 https://olsrr.rsquaredacademy.com/articles/regression_diagnostics
 
-Added variable plot provides information about the marginal (adjusted) importance of a predictor variable 𝑋
-, given the other predictor variables already in the model. It shows the marginal importance of the variable in reducing the residual (unexplained) variability.
+Added variable plot provides information about the marginal (adjusted) importance of a predictor variable 𝑋, given the other predictor variables already in the model. It shows the marginal importance of the variable in reducing the residual (unexplained) variability.
 
 The added variable plot was introduced by Mosteller and Tukey (1977). It enables us to visualize the regression coefficient of a new variable being considered to be included in a model. The plot can be constructed for each predictor variable.
 
@@ -67,7 +74,7 @@ A strong pos/neg relationship in the added variable plot indicates the increased
 
 In this case *HSverbal* doesn't look like it contributes much explanatory power to the full model (very flat slope).
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 # the dredge function fits all combinations
 # of the variables in the GPA.all.parms model fit above
 results<-MuMIn::dredge(GPA.all.parms) # note use of 'MuMIn' package
@@ -87,17 +94,18 @@ Tells us that HSverbal is not really a useful predictor, and it is absent in all
 
 Only fit models without HSverbal.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 results<-dredge(GPA.all.parms, subset= !(HSverbal))
 results
 ```
-Again, the model selection results without including HSverbal are the same as those including HSverbal; Models 13 and 14 have about equal explanatory power (delta AICc <2). The inclusion of HS math does not explain additional variation above what is explained by the other three variables; inclusion of HSmath means a 1 parameter "penalty". Model 14 is about 1.69 times more likely than Model 13 (0.532/0.315=1.69). This re-scaled result is the same as before. 
+Again, the model selection results without including HSverbal are the same as those including HSverbal; Models 13 and 14 have about equal explanatory power (delta AICc <2). The inclusion of HSmath does not explain additional variation above what is explained by the other three variables; inclusion of HSmath means a 1 parameter "penalty". Model 14 is about 1.69 times more likely than Model 13 (0.532/0.315=1.69). This re-scaled result is the same as before. 
 
-```{r make a figure using best-fit model, message=FALSE, warning=FALSE}
+```{r make a figure using best-fit model, message=FALSE, warning=FALSE, fig.width=9.5}
 #trying to represent combinations of our three most important variables on predicting GPA
 p3 <- ggplot(GPA_data, aes(SATmath, GPA, colour = SATverbal)) + 
   geom_point(size=3) +
-  geom_smooth(method="lm")
+  geom_smooth(method="lm") +
+  scale_colour_gradientn(colours = terrain.colors(10, rev=TRUE))
 
 p4 <- ggplot(GPA_data, aes(SATverbal, GPA, colour = HSmath)) + 
   geom_point(size=3) +
