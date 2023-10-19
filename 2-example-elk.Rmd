@@ -103,25 +103,25 @@ sel.table[,4:5]<- round(sel.table[,4:5],3)
 sel.table
 # that’s better
 ```
-```{r more clean up}
+```{r more clean up, eval=FALSE, include=FALSE}
 # how about a little renaming columns to fit proper conventions
 # number of parameters (df) should be K
-names(sel.table)[1] = "K"
+#names(sel.table)[1] = "K"
 
 ## lets be sure to put the model names in a new column
-sel.table$Model<-rownames(sel.table)
+#sel.table$Model<-rownames(sel.table)
 
 # replace Model name with formulas little tricky so be careful
-for(i in 1:nrow(sel.table)) sel.table$Model[i]<- as.character(formula(paste(sel.table$Model[i])))[3]
+#for(i in 1:nrow(sel.table)) sel.table$Model[i]<- #as.character(formula(paste(sel.table$Model[i])))[3]
 
 # let's see what is in there
-sel.table
+#sel.table
 ```
 
-```{r reorder columns}
+```{r reorder columns, eval=FALSE, include=FALSE}
 #little reordering of columns
-sel.table<-sel.table[,c(6,1,2,3,4,5)] #specify order of columns
-sel.table
+#sel.table<-sel.table[,c(6,1,2,3,4,5)] #specify order of columns
+#sel.table
 ```
 Now that’s more like it. Models are from best to worst fitting. You can usually drop AIC~c~ if the Log Likelihood (logLik) is in the table, but we’ll leave it here. This is about ready for a report, so let’s write it to a comma separated file.
 ```{r write AIC table to file}
