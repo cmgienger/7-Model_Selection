@@ -37,7 +37,7 @@ options(width = 90)
 ```
 
 ```{r}
-data_elk<-read.csv("data/elk_example.csv")
+data_elk<-read.csv("../data/elk_example.csv")
 ```
 
 The data includes three response variables; count, density, and presence.
@@ -64,15 +64,15 @@ options(na.action = "na.fail")
 
 Ok we're ready to go.
 Let's fit four candidate models that explain variation in animal density.
-Ideally, these models would represent hypotheses.
+Ideally, these models would represent biological hypotheses.
 Given the nature of the response, we'll use ordinary linear regression with the `lm` function.
 
 ```{r}
 #First, fit 4 candidate linear models to explain variation in density
-mod1<-lm(density~distance+elev, data = data_elk)
-mod2<-lm(density~slope+pct.cover, data = data_elk)
-mod3<-lm(density~slope+distance, data = data_elk)
-mod4<-lm(density~slope+distance+elev, data = data_elk)
+mod1 <- lm(density ~ distance + elev, data = data_elk)
+mod2 <- lm(density ~ slope + pct.cover, data = data_elk)
+mod3 <- lm(density ~ slope + distance, data = data_elk)
+mod4 <- lm(density ~ slope + distance + elev, data = data_elk)
 ```
 
 We can now use the `model.sel` function to conduct model selection.
@@ -82,7 +82,7 @@ Here we'll create an object `out.put` that contains all of the model selection i
 ```{r}
 # use the model.sel function to conduct model selection
 # and put output into object out.put
-out.put<-model.sel(mod1,mod2,mod3,mod4)
+out.put <- model.sel(mod1, mod2, mod3, mod4)
 out.put
 ```
 
@@ -122,14 +122,14 @@ subset(out.put, cumsum(out.put$weight) <= .95)
 
 In most circumstances, you would like to include model selection results in a table in a report, publication, or thesis.
 Here, we need to coerce the output from the `model.sel` function into a dataframe.
-The first c elements of that data frame contain what we want.
+Columns 6-10 of that data frame contain what we want.
 How do I know that?
 I first created the dataframe and used the "str" function to see what elements were in the dataframe.
 
 ```{r}
 # coerce the object out.put into a data frame
 # elements 6-10 in out.put have what we want
-sel.table<-as.data.frame(out.put)[6:10]
+sel.table <- as.data.frame(out.put)[6:10]
 sel.table
 ```
 
@@ -138,8 +138,8 @@ Let's clean this up a bit -- first by rounding.
 
 ```{r adjusting sig digits}
 # a little clean-up, lets round things a bit
-sel.table[,2:3]<- round(sel.table[,2:3],2)
-sel.table[,4:5]<- round(sel.table[,4:5],3)
+sel.table[, 2:3] <- round(sel.table[, 2:3], 2)
+sel.table[, 4:5] <- round(sel.table[, 4:5], 3)
 sel.table
 # that’s better
 ```
@@ -172,7 +172,7 @@ This is about ready for a report, so let's write it to a comma separated file.
 
 ```{r write AIC table to file}
 # write to a file, here a comma separated values format
-write.csv(sel.table,"tables/My model selection table.csv", row.names = F)
+write.csv(sel.table,"../tables/My model selection table.csv", row.names = F)
 ```
 
 The default model selection criteria for all `MuMIn` functions is AIC~c~.
@@ -181,12 +181,12 @@ Below is code for selecting models using Bayesian or Schwartz's information crit
 
 ```{r}
 # model selection table; sorted by BIC
-model.sel(mod1,mod2,mod3,mod4, rank = BIC)
+model.sel(mod1, mod2, mod3, mod4, rank = BIC)
 ```
 
 ```{r}
 #consistent AIC with Fishers information matrix
-model.sel(mod1,mod2,mod3,mod4, rank = CAICF) 
+model.sel(mod1, mod2, mod3, mod4, rank = CAICF) 
 ```
 
 There also are `MuMin` functions for calculating model selection criteria, such as AIC, AIC~c~, BIC and Mallows Cp, an ad hoc model selection criterion, not recommended.
@@ -194,7 +194,7 @@ Here lets only compare two models using AIC.
 
 ```{r compare models with AIC}
 #AIC
-AIC(mod1,mod2)
+AIC(mod1, mod2)
 ```
 
 Note that above, the df is actually the number of model parameters, usually defined as K.
@@ -222,7 +222,7 @@ There are two methods for model-averaging defined by Burnham and Anderson; where
 
 ```{r Model Averaging}
 # Model average using all candidate models, always use revised.var = TRUE
-MA.ests<-model.avg(out.put, revised.var = TRUE)
+MA.ests <- model.avg(out.put, revised.var = TRUE)
 MA.ests
 ```
 
@@ -235,11 +235,11 @@ So read the message below and users beware.
 ## FOR EXPLORATORY PURPOSES ONLY!!! NEVER EVER DO THIS FOR A REAL
 ## STUDY
 # fit model with all parameters
-all.parms<-lm(density~slope+distance+elev+ pct.cover, data = data_elk)
+all.parms <- lm(density ~ slope + distance + elev + pct.cover, data = data_elk)
 
 # the dredge function fits all combinations
 # of the variables in the all.parms model fit above
-results<-dredge(all.parms)
+results <- dredge(all.parms)
 results
 ```
 
@@ -261,18 +261,18 @@ sw(results)
 Notice above that every parameter is in the same number of models.
 
 ```{r make a figure using best-fit model, message=FALSE, warning=FALSE}
-p1 <- ggplot(data_elk, aes(distance, density, colour = elev)) + 
+p1 <- ggplot(data_elk, aes(distance, density, colour = elev)) +
   geom_point() +
-  geom_smooth(method="lm")+
+  geom_smooth(method = "lm") +
   scale_x_continuous(limits = c(0, 700))
 
-p2 <- ggplot(data_elk, aes(elev, density, colour = distance)) + 
+p2 <- ggplot(data_elk, aes(elev, density, colour = distance)) +
   geom_point() +
-  geom_smooth(method="lm") +
-  scale_colour_gradientn(colours = terrain.colors(10, rev=TRUE)) +
-  scale_x_continuous(limits = c(0, 900))                         
+  geom_smooth(method = "lm") +
+  scale_colour_gradientn(colours = terrain.colors(10, rev = TRUE)) +
+  scale_x_continuous(limits = c(0, 900))
 
-p1+p2
+p1 + p2
 ```
 
 -   Note that this example probably needs a different error structure because prediction line drops to negative for distance values below 125.
@@ -280,7 +280,7 @@ p1+p2
     We will ignore this for now.
 
 -   Peterson goes on with other examples, including GLMM, but we won't because the model selection framework becomes a bit more confusing.
-    We will continue this more next time with a RIKZ example from Zurr et al. 2009.
+
 
 \
 

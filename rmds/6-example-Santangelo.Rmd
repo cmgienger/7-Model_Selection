@@ -7,6 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2", # graphics
                      "dplyr",
+                     "readr",
                      "lme4", # display() etc.
                      "lmerTest",
                      "MuMIn"
@@ -18,6 +19,7 @@ if(length(pk_to_install)>0 ){
 #lapply(packages_needed, require, character.only = TRUE)
 library(ggplot2)
 library(dplyr)
+library(readr)
 library(lme4)
 library(lmerTest)
 library(ggfortify)
@@ -40,7 +42,7 @@ The data consists of 140 observations (rows). Each row in the dataset correspond
 Let's start by loading in the data.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-Thompson_data <- read_csv("data/Thompson-Johnson_2016_Evol.csv", col_names = TRUE)
+Thompson_data <- read_csv("../data/Thompson-Johnson_2016_Evol.csv", col_names = TRUE)
 
 glimpse(Thompson_data)
 ```

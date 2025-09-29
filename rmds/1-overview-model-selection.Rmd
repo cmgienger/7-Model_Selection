@@ -67,14 +67,20 @@ This is also closely related to the concept of **parsimony**; principle that sug
 
 There are numerous model selection criteria based on mathematical information theory that we can use to select among a set of candidate models. They additionally allow the relative weights of different models to be compared and allow multiple models to be used for inferences. The most commonly used information criteria in ecology and evolution are: Akaike's Information Criterion (AIC), the corrected AIC~c~ (corrected for small sample sizes), and the Bayesian Information Criterion (BIC, also known as the Schwarz Criterion; Johnson and Omland, 2004). Here we will focus on AIC and AIC~c~. Here is how AIC is calculated:
 
-$$ AIC = -2Log\mathcal{L} \ + \ 2p $$
-The lower the AIC value, the better the model. $-2Log\mathcal{L}$ is called the **negative log likelihood** of the model, and measures the model's fit (or lack thereof) to the observed data: **Lower** negative log-likelihood values indicate a better fit of the model to the observed data. $2p$ is a _bias correcting factor_ that penalizes the model AIC based on the number of parameters (p) in the model. 
+$$ AIC = -2 \log L + 2p $$
+
+The lower the AIC value, the better the model. $-2 \log L$ is called the **negative log likelihood** of the model, and measures the model's fit (or lack thereof) to the observed data: **Lower** negative log-likelihood values indicate a better fit of the model to the observed data. $2p$ is a _bias correcting factor_ that penalizes the model AIC based on the number of parameters (p) in the model. 
 
 Similar to AIC is AIC~c~, which corrects for small sample sizes. It is recommended to use AIC~c~ when $n/k$ is less than 40, with $n$ being the sample size (i.e. total number of observations) and $k$ being the number of parameters in the most saturated model (i.e. the model with the most parameters; Symonds and Moussalli 2011). AIC~c~ is calculated as follows:
 
 $$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
 
 ## Caveats and Limitations to Model Selection
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
 
 1. Depends on the models included in the candidate set. You can’t identify a model as being the “best” fit to the data if you didn’t include the model to begin with!  
 \
@@ -83,3 +89,5 @@ $$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
 3. Need to decide whether to use model selection or common inferential statistics (e.g. based on P-values). Techniques that rely on both approaches are possible (e.g. backward variable selection followed by averaging of top models) but are discouraged by some model-selection purists.  
 \
 4. Difficult or impossible to compare models with different assumptions, such as those with different error structures (e.g., Poisson vs. Binomial data).  
+
+</div>

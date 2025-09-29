@@ -33,7 +33,7 @@ SAT scores for Math and Verbal sections; High School GPAs for Math and English; 
 college Grade Point Average (GPA).
 
 ```{r}
-GPA_data <- read.csv("data/GPA.txt", sep="")
+GPA_data <- read.csv("../data/GPA.txt", sep="")
 ```
 
 ```{r preview data}

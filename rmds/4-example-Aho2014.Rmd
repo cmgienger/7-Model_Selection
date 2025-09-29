@@ -76,7 +76,7 @@ Akaike (1973) proposed a biased estimator based on a maximized log-likelihood fu
 adjusted estimator that accounts for this bias in the form of a penalty term is called the
 Akaike information criterion or AIC:
 
-$$ AIC = -2Log\mathcal{L} \ + \ 2p $$
+$$ AIC = -2 \log L + 2p $$
 Model comparisons using AIC are often summarized by subtracting the AIC score of
 the optimal model from the scores of the other candidate models. From the perspective of 
 multimodel inference, the minimum AIC model may not be the “true” best model from a set of candidate models.
@@ -129,6 +129,21 @@ However, what we are really concerned with is **multicolinearity**. Multicolinea
 model_wash1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data.washburn)
 anova (model_wash1) #coefficients of the full model
 ```
+\
+
+One way of visualizing multicolinearity is by using **Added Variable Plots**. Added Variable Plots (AVPs), sometimes called *partial regression plots*, are diagnostic plots in regression analysis that help you understand the unique contribution of a predictor variable *after accounting for other predictors in the model*. The AVP is essentially like zooming in on just the unique contribution of $X_1$ to $Y$.
+
+If the plot shows a **strong linear trend**:  
+
+- $X_1$ has a strong unique effect on $Y$.
+
+If the plot is **flat or random scatter**:  
+
+- $X_1$ does not add much explanatory value after controlling for other predictors.
+
+This allows you to see whether a specific predictor adds meaningful explanatory power beyond the others.
+
+\
 
 ```{r message=FALSE, warning=FALSE}
 olsrr::ols_plot_added_variable(model_wash1)
@@ -138,7 +153,7 @@ olsrr::ols_plot_added_variable(model_wash1)
 performance::check_collinearity(model_wash1)
 #VIF are also translated to Tolerance values, where tolerance = 1/vif
 ```
-```{r check model, fig.height=8}
+```{r check model, fig.width=8, fig.height=8}
 performance::check_model(model_wash1)
 ```
 
@@ -147,7 +162,12 @@ performance::check_model(model_wash1)
 Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, **multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low**. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
 \
 \
-<span style="color:blue">Remember: “Pairwise correlations are not the problem. It is the conditional associations - not correlations - that matter.” (McElreath 2020, p. 169)</span>  
+<div style="border: 2px solid black; padding: 10px; width: fit-content;">
+  <p style="color: blue; font-size: 20pt; margin: 0;">
+    “Pairwise correlations are not the problem. It is the conditional associations - not correlations - that matter.”
+    (McElreath 2020, p. 169)
+  </p>
+</div>  
 \
 \
 **Interpretation of the Variance Inflation Factor**  

@@ -444,14 +444,14 @@ Akaike’s Information Criterion (AIC), the corrected AIC<sub>c</sub>
 Criterion (BIC, also known as the Schwarz Criterion; Johnson and Omland,
 2004). Here we will focus on AIC and AIC<sub>c</sub>. Here is how AIC is
 calculated:</p>
-<p><span class="math display">\[ AIC = -2Log\mathcal{L} \ + \ 2p
-\]</span> The lower the AIC value, the better the model. <span class="math inline">\(-2Log\mathcal{L}\)</span> is called the
-<strong>negative log likelihood</strong> of the model, and measures the
-model’s fit (or lack thereof) to the observed data:
-<strong>Lower</strong> negative log-likelihood values indicate a better
-fit of the model to the observed data. <span class="math inline">\(2p\)</span> is a <em>bias correcting factor</em>
-that penalizes the model AIC based on the number of parameters (p) in
-the model.</p>
+<p><span class="math display">\[ AIC = -2 \log L + 2p \]</span></p>
+<p>The lower the AIC value, the better the model. <span class="math inline">\(-2 \log L\)</span> is called the <strong>negative
+log likelihood</strong> of the model, and measures the model’s fit (or
+lack thereof) to the observed data: <strong>Lower</strong> negative
+log-likelihood values indicate a better fit of the model to the observed
+data. <span class="math inline">\(2p\)</span> is a <em>bias correcting
+factor</em> that penalizes the model AIC based on the number of
+parameters (p) in the model.</p>
 <p>Similar to AIC is AIC<sub>c</sub>, which corrects for small sample
 sizes. It is recommended to use AIC<sub>c</sub> when <span class="math inline">\(n/k\)</span> is less than 40, with <span class="math inline">\(n\)</span> being the sample size (i.e. total
 number of observations) and <span class="math inline">\(k\)</span> being
@@ -463,6 +463,10 @@ is calculated as follows:</p>
 </div>
 <div id="caveats-and-limitations-to-model-selection" class="section level2">
 <h2>Caveats and Limitations to Model Selection</h2>
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class="blue">
 <ol style="list-style-type: decimal">
 <li>Depends on the models included in the candidate set. You can’t
 identify a model as being the “best” fit to the data if you didn’t
@@ -484,6 +488,7 @@ purists.<br />
 assumptions, such as those with different error structures (e.g.,
 Poisson vs. Binomial data).</li>
 </ol>
+</div>
 </div>
 
 

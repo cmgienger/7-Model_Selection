@@ -55,7 +55,7 @@ of the beach) that might affect benthic fauna. Nine beaches were chosen by strat
 
 ```{r message=FALSE, warning=FALSE}
 # Load in data
-rikz_data <- read.csv("data/rikz_data.csv")
+rikz_data <- read.csv("../data/rikz_data.csv")
 ```
 
 ```{r}
@@ -72,11 +72,10 @@ We generated 3 models:
 
 2. A **random intercept and slope model** with NAP as a fixed effect and a random effect allowing both the intercept (i.e. richness) and slope (i.e. response of richness to NAP) to vary across beaches; and 
 
-<<<<<<< HEAD
 3. An **intercept only model** with no fixed effects but allowing for variation in richness across beaches. We'll create similar models with random intercepts and random intercepts + slopes, but will also include Exposure and the NAP by Exposure interaction as additional fixed-effects.
-=======
+
 3. An **intercept only model** with no fixed effects but allowing for variation in richness across beaches. In this lecture, we'll create similar models with random intercepts and random intercepts + slopes but we'll additionally include Exposure and the NAP by Exposure interaction as additional fixed-effects.
->>>>>>> d292f679df6fb2a53b3feebaa0cdfb798b795d03
+
 
 ![](images/random_int_slope.jpg)
 
