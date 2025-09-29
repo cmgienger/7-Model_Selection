@@ -47,19 +47,28 @@ This is an **inferential** or **frequentist** approach to statistics. An alterna
 2. Models can be ranked and weighted according to their fit to the observed data.
 3. The best supported models can be averaged to get parameter estimates
     
-The most challenging part of model selection is coming up with a series of hypothesis-driven models that adequately capture the processes and patterns you are interested in representing. In an ideal world, this would be based on detailed knowledge of the system you are working in and on prior work or literature reviews. However, detailed knowledge is often unavailable for many ecological systems and alternative approaches exist. For example, we can compare models with all possible combinations of the predictors of interest (aka the **all-subset** approach) rather than constructing models with only particular combinations of those predictors. Note this approach has been criticized as "data-dredging" or "fishing" (Burnham and Anderson 2002, but see Symonds and Moussalli 2011) and is nicely summarized but this often-quote line from Burnham and Anderson (2012).
+The most challenging part of model selection is coming up with a series of hypothesis-driven models that adequately capture the processes and patterns you are interested in representing. In an ideal world, this would be based on detailed knowledge of the system you are working in and on prior work or literature reviews. However, detailed knowledge is often unavailable for many ecological systems and alternative approaches exist. 
 
-_"“Let the computer find out” is a poor strategy and usually reflects the fact that the researcher did not bother to think clearly about the problem of interest and its scientific setting (Burnham and Anderson, 2002)."_
+For example, we can compare models with all possible combinations of the predictors of interest (aka the **all-subset** approach) rather than constructing models with only particular combinations of those predictors. Note this approach has been criticized as "data-dredging" or "fishing" (Burnham and Anderson 2002, but see Symonds and Moussalli 2011) and is nicely summarized but this often-quote line from Burnham and Anderson (2012).
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+_"“Let the computer find out” is a poor strategy and usually reflects the fact that the researcher did not bother to think clearly about the problem of interest and its scientific setting (Burnham and Anderson, 2002)."_  
+
+</div>
 
 The next step is to decide how we select the "best" model or set of best models. One approach would be to use a measure of model fit or explanatory power. For example, we could use the model R^2^, which represents the amount of variation in our response variable that is explained by the predictor variables in the model. However, this is not a parsimonious solution since it inevitably favours more complex models (i.e. models with more predictors). Thus, what we really need is an approach that examines model fit while simultaneously penalizing model complexity.
 
 This trade-off between complexity and explanatory power (model fit) is at the heart of model selection.
 
-![](images/elephant.jpeg)
+![](../images/elephant.jpeg)
 
 This is also closely related to the concept of **parsimony**; principle that suggests that all things being equal, you should prefer the simplest possible explanation for a phenomenon or the simplest possible solution to a problem. Since parsimonious explanations are simpler, they tend to generalize better across a wide range of situations. This means that a parsimonious explanation will generally be better able to explain a wider range of phenomena than a less parsimonious one, since a parsimonious explanation doesn’t rely on as many assumptions that are specific to the situation at hand.  
 
-![](images/parsimony2.png)
+![](../images/parsimony2.png)
 \
 \
 
