@@ -6,6 +6,12 @@ output:
     toc: yes
 ---
 
+<style type="text/css">
+  body{
+  font-size: 14pt;
+}
+</style>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2", # graphics

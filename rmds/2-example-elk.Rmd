@@ -7,6 +7,12 @@ output:
     theme: lumen
 ---
 
+<style type="text/css">
+  body{
+  font-size: 14pt;
+}
+</style>
+
 ```{r setup2, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2",
@@ -25,7 +31,7 @@ library(MuMIn)
 
 Jim Peterson, Oregon State University <https://sites.google.com/site/rforfishandwildlifegrads/home/mumin_usage_examples>
 
-![Habitat Selection by Elk](images/Elk.jpg)
+![Habitat Selection by Elk](../images/Elk.jpg)
 
 ```{r adjust width of console outputs}
 #many of our tables output in the console are really wide; expand limits [width] to fit them all in,
@@ -41,6 +47,7 @@ data_elk<-read.csv("../data/elk_example.csv")
 ```
 
 The data includes three response variables; count, density, and presence.
+
 The data includes five predictor variables: elev (elevation), slope (gradient), area, distance (to nearest population), and pct.cover (% cover).\
 
 \
@@ -86,11 +93,8 @@ out.put <- model.sel(mod1, mod2, mod3, mod4)
 out.put
 ```
 
-The models are sorted from best (top) to worst (bottom).
-Looks like `mod1`, containing an intercept (Int), distance (dst), and elevation(elev) is best with a weight of 0.72.
-It is 0.72/0.264 = 2.72 times more likely to be the best explanation (hypothesis) for variation in density.
+The models are sorted from best (top) to worst (bottom). Note that the function does not use the whole name for model parameters, but creates abbreviations. Looks like `mod1`, containing an intercept (Int), distance (dst), and elevation(elev) is best with a weight of 0.72. It is 0.72/0.264 = 2.72 times more likely to be the best explanation (hypothesis) for variation in density.
 
-Note that the function does not use the whole name for model parameters, but creates abbreviations.
 Quite often we need to express model selection uncertainty by specifying a confidence set of models using some rule.
 Here we can use the `subset` function to select the models that meet the criteria.
 Note that the weights are re-normalized for the models selected.
