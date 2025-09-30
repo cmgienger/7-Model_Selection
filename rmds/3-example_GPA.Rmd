@@ -84,7 +84,7 @@ In this case *HSverbal* doesn't look like it contributes much explanatory power 
 ```{r message=FALSE, warning=FALSE}
 # the dredge function fits all combinations
 # of the variables in the GPA.all.parms model fit above
-results<-MuMIn::dredge(GPA.all.parms) # note use of 'MuMIn' package
+results <- MuMIn::dredge(GPA.all.parms) # note use of 'MuMIn' package
 results
 ```
 

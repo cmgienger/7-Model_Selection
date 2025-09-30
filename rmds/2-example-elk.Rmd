@@ -275,9 +275,10 @@ subset(results, delta == 0)
 top_model <- lm(formula = density ~ distance + elev, data = data_elk)
 
 plot(parameters(top_model)) +
-  ggplot2::labs(title = "Top Model: density ~ distance + elevation", subtitle = "Confidence Intervals for Predictors Do Not Overlap Zero (significant)")
+  ggplot2::labs(title = "Top Model: density ~ distance + elevation",
+                subtitle = "Confidence Intervals for Predictors Do Not Overlap Zero (significant)")
 
-# but we likely don't care much about statistical significance
+# but we likely don't care much about statistical significance; model likely would not have made it to the top if it didn't have a lot of predictive power.
 ```
 
 
