@@ -17,7 +17,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2",
                      "patchwork",
-                     "MuMIn"
+                     "MuMIn",
+                     "easystats"
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -27,6 +28,7 @@ if(length(pk_to_install)>0 ){
 library(ggplot2)
 library(patchwork)
 library(MuMIn)
+library(easystats)
 ```
 
 Jim Peterson, Oregon State University <https://sites.google.com/site/rforfishandwildlifegrads/home/mumin_usage_examples>
@@ -204,8 +206,18 @@ AIC(mod1, mod2)
 Note that above, the df is actually the number of model parameters, usually defined as K.
 
 The **relative importance of individual parameters** can also be examined using the model weights.
-Here, the Akaike weights for each model that contains the parameter of interest are summed.
+Here, the **Akaike weights** for each model that contains the parameter of interest are summed.
 These have been defined as importance weights and you can obtain them from a `model.sel` object using the "importance" function.
+
+They can be interpreted as the probability that a variable is part of the best model, given the data and the candidate set. High values (close to 1) indicate strong support for including the variable, while low values (close to 0) suggest little support.
+
+**Caveats**
+
+-  Relative, not absolute: These are not effect sizes. A variable with sw = 0.9 is not “twice as important” as one with sw = 0.45. It just has more consistent support across the candidate models.
+
+-  Model set–dependent: Importance weights depend on the models you included. If the candidate set is poorly specified, the weights can be misleading.
+
+-  Collinearity issues: Correlated predictors may “share” importance, making their weights look lower than expected.
 
 ```{r Importance weights for individual predictor variables}
 # Importance weights for individual predictor variables
@@ -229,6 +241,8 @@ There are two methods for model-averaging defined by Burnham and Anderson; where
 MA.ests <- model.avg(out.put, revised.var = TRUE)
 MA.ests
 ```
+\
+\
 
 Another useful `MuMIn` function is `dredge`.
 However, you should only use is for exploratory purposes.
@@ -257,6 +271,16 @@ subset(results, delta <5)
 subset(results, delta == 0)
 ```
 
+```{r plot coefficients from top model}
+top_model <- lm(formula = density ~ distance + elev, data = data_elk)
+
+plot(parameters(top_model)) +
+  ggplot2::labs(title = "Top Model: density ~ distance + elevation", subtitle = "Confidence Intervals for Predictors Do Not Overlap Zero (significant)")
+
+# but we likely don't care much about statistical significance
+```
+
+
 ```{r}
 # calculate variable importance weights
 sw(results)
@@ -264,7 +288,7 @@ sw(results)
 
 Notice above that every parameter is in the same number of models.
 
-```{r make a figure using best-fit model, message=FALSE, warning=FALSE}
+```{r make a figure using best-fit model, message=FALSE, warning=FALSE, fig.width=10}
 p1 <- ggplot(data_elk, aes(distance, density, colour = elev)) +
   geom_point() +
   geom_smooth(method = "lm") +

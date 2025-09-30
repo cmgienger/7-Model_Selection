@@ -5,6 +5,13 @@ output:
   html_document:
     toc: yes
 ---
+
+<style type="text/css">
+  body{
+  font-size: 14pt;
+}
+</style>
+
 ```{r setup2, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2",
@@ -54,10 +61,10 @@ Some apparent colinearity among variables (HSverbal and SATmath). Anything above
 
 ```{r}
 # fit the full model with all parameters (sometimes called 'global')
-GPA.all.parms<-lm(GPA ~ SATmath + SATverbal + HSmath + HSverbal, data = GPA_data)
+GPA.all.parms <-lm (GPA ~ SATmath + SATverbal + HSmath + HSverbal, data = GPA_data)
 ```
 
-Added variable plots are a quick diagnosis to see what variables in the global
+**Added variable plots** are a quick diagnosis to see what variables in the global
 model are likely to be influential.
 
 ```{r message=FALSE, warning=FALSE}

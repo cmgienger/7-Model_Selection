@@ -58,7 +58,7 @@ The most challenging part of model selection is coming up with a series of hypot
 For example, we can compare models with all possible combinations of the predictors of interest (aka the **all-subset** approach) rather than constructing models with only particular combinations of those predictors. Note this approach has been criticized as "data-dredging" or "fishing" (Burnham and Anderson 2002, but see Symonds and Moussalli 2011) and is nicely summarized but this often-quote line from Burnham and Anderson (2012).
 
 <style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px; border: 2px solid black}
 </style>
 <div class = "blue">
 
