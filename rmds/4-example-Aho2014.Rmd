@@ -8,6 +8,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
 packages_needed <- c("ggplot2", # graphics
                      "dplyr",
                      "lme4", # display() etc.
@@ -37,10 +39,6 @@ library(patchwork)
 library(olsrr)
 ```
 
-```{r include = FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-```
-
 ```{r adjust width of console outputs, include=FALSE}
 #many of our tables output in the console are really wide; expand limits [width] to fit them all in,
 #otherwise they wrap awkwardly
@@ -49,7 +47,6 @@ options(width = 90)
 
 #matrix(runif(100), ncol = 20) #test code to display adjusted width
 ```
-
 
 A fundamental concern with many analyses is the selection of predictors that provide
 useful models. One approach is to identify models that are parsimonious, that is, simple
@@ -106,7 +103,7 @@ https://www.rdocumentation.org/packages/asbio/versions/1.6-7/topics/wash.rich
 
 ```{r import and reformat data}
 data("wash.rich") #attach data from the asbio library
-data.washburn <- rename(wash.rich,
+data_washburn <- rename(wash.rich,
                         site = site,
                         richness = Y,
                         soil_N = X1,
@@ -117,7 +114,7 @@ data.washburn <- rename(wash.rich,
 ```
 
 ```{r check for colinearity, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
-ggpairs(data.washburn, columns = 3:7) + theme_bw()
+ggpairs(data_washburn, columns = 3:7) + theme_bw()
 ```
 
 Cover is highly correlated with both soil N and with aspect. This might not be a big deal, but we need to consider to what degree variables are co-linear; to what degree do they inform us about the same phenomenon of interest.  
@@ -127,8 +124,8 @@ Other people disagree: *"The fact that some or all predictor variables are corre
 However, what we are really concerned with is **multicolinearity**. Multicolinearity is really bad and greatly impacts model interpretation.
 
 ```{r fitmodel to look at Variance Inflation Factor}
-model_wash1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data.washburn)
-anova (model_wash1) #coefficients of the full model
+model_washburn1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data_washburn)
+anova (model_washburn1) #coefficients of the full model
 ```
 \
 
@@ -146,18 +143,18 @@ This allows you to see whether a specific predictor adds meaningful explanatory 
 
 \
 
-```{r message=FALSE, warning=FALSE, fig.width=6}
-olsrr::ols_plot_added_variable(model_wash1)
+```{r ols_plot_added_variable, message=FALSE, warning=FALSE, fig.width=6}
+olsrr::ols_plot_added_variable(model_washburn1)
 ```
 
 We can also diagnose multicollinearity using the **Variance Inflation Factor (VIF)**. This measures how much the variance of a regression coefficient is “inflated” because of multicollinearity (correlations among predictors).
 
 ```{r check model for multicolinearity}
-performance::check_collinearity(model_wash1)
+performance::check_collinearity(model_washburn1)
 #VIF are also translated to Tolerance values, where tolerance = 1/vif
 ```
 ```{r check model, fig.width=8, fig.height=8}
-performance::check_model(model_wash1)
+performance::check_model(model_washburn1)
 ```
 
 \
@@ -194,28 +191,28 @@ Multicollinearity should not be confused with a raw strong correlation between p
 **Multicollinearity and Interaction Terms**  
 If interaction terms are included in a model, high VIF values are expected. This portion of multicollinearity among the component terms of an interaction is also called "inessential ill-conditioning", which leads to inflated VIF values that are typically seen for models with interaction terms (Francoeur 2013).  
 
-For demonstration purposes will assume that we have *apriori* justification for including all predictor variables in our model; typically 1-2 papers supporting the role of each predictor in previous studies. Remember that data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. Our model including all predictor variables was already fit above `model_wash1`. Use `dredge` function to fit all combinations.
+For demonstration purposes will assume that we have *apriori* justification for including all predictor variables in our model; typically 1-2 papers supporting the role of each predictor in previous studies. Remember that data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. Our model including all predictor variables was already fit above `model_washburn1`. Use `dredge` function to fit all combinations.
 ```{r fit dredge model}
 # change na. action
 options(na.action = "na.fail") # otherwise blows up with NA values
-dredge_wash <- dredge(model_wash1)
-dredge_wash
+dredge_washburn <- dredge(model_washburn1)
+dredge_washburn
 ```
 There are 32 possible models based on additive combinations of variables (no interaction terms).  
 
 ```{r best subset}
 # grab best supported models
-subset(dredge_wash, delta <5)
+subset(dredge_washburn, delta <5)
 ```
 ```{r equally-competitve models}
 #grab equally competitive models
-subset(dredge_wash, delta <2)
+subset(dredge_washburn, delta <2)
 ```
 So there are five models that could be considered equally competitive (having explanatory power that is indistinguishable)
 But what variables are most influential in our models?
-```{r}
+```{r calculate variable importance weights}
 # calculate variable importance weights
-sw(dredge_wash) #notice this is the global model, not just the competitive model set
+sw(dredge_washburn) #notice this is the global model, not just the competitive model set
 ```
 All five predictor variables show up in 16 of the 32 possible models, but they are not equally important.
 Looking at the output above, there is plenty of evidence for *cover* and *pH* (weights close to one), but much less for *aspect*, *soil_N*, or *slope*. The number of candidate models in which a parameter occurs can have a big effect of the importance weight. For example, the intercept is included in all models, so the importance weight is 1 (hence it is never shown).  
@@ -228,7 +225,7 @@ http://atyre2.github.io/2017/06/16/rebutting_cade.html
 `MuMIn` function `model.avg` conducts both types of model averaging.
 ```{r Model Averaging}
 # Model average using all candidate models, always use revised.var = TRUE
-model.avg(dredge_wash, revised.var = TRUE)
+model.avg(dredge_washburn, revised.var = TRUE)
 ```
 
 
@@ -239,32 +236,32 @@ https://pubmed.ncbi.nlm.nih.gov/26594695/
 
 Can now report the model averaged coefficients for the predictor variables individual effects on species richness.
 ```{r look at the averaged coefficients}
-#summary(model.avg(dredge_wash)) # if you want to average across all models, both competitive and non-competitive
-summary(model.avg(dredge_wash, subset = delta < 2)) # if you just want to look only at competitive models, which
+#summary(model.avg(dredge_washburn)) # if you want to average across all models, both competitive and non-competitive
+summary(model.avg(dredge_washburn, subset = delta < 2)) # if you just want to look only at competitive models, which
 #is the point of model selection.
 #there is justification for looking only at the competitive models; trying to narrow things down.
 ```
 Coefficients average across all models (full average) is probably better; more conservative. In this example the interpretation doesn't really change depending on technique for model averaging coefficients.
 
 ```{r I guess we should make a figure, fig.width=10}
-w1 <- ggplot(data.washburn, aes(soil_N, richness)) + 
+w1 <- ggplot(data_washburn, aes(soil_N, richness)) + 
   geom_point() +
   geom_smooth(method="lm")
   #scale_x_continuous(limits = c(0, 700))
 
-w2 <- ggplot(data.washburn, aes(slope, richness)) + 
+w2 <- ggplot(data_washburn, aes(slope, richness)) + 
   geom_point() +
   geom_smooth(method="lm")
 
-w3 <- ggplot(data.washburn, aes(aspect, richness)) + 
+w3 <- ggplot(data_washburn, aes(aspect, richness)) + 
   geom_point() +
   geom_smooth(method="lm")
 
-w4 <- ggplot(data.washburn, aes(cover, richness)) + 
+w4 <- ggplot(data_washburn, aes(cover, richness)) + 
   geom_point() +
   geom_smooth(method="lm")
 
-w5 <- ggplot(data.washburn, aes(pH, richness)) + 
+w5 <- ggplot(data_washburn, aes(pH, richness)) + 
   geom_point() +
   geom_smooth(method="lm")
 
