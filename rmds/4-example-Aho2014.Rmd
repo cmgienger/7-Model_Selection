@@ -60,6 +60,7 @@ Bozdogan 1987). A parsimonious model should:
 1. Be based on (be subset from) a set of parameters identified by the investigator
 as biologically important, including, if necessary, covariates, interactions, and
 higher-order terms.
+
 2. Have as few parameters as possible (be as simple as possible, but no simpler; Burnham and Anderson 2002, Crawley 2007)
 
 Aside from being philosophically objectionable and difficult to interpret, an overly
@@ -83,7 +84,7 @@ multimodel inference, the minimum AIC model may not be the “true” best model
 Table below lists Δ~i~ cutoffs defining the support for the *i*th model.  
 \
 \
-![](images/AIC_values.jpeg){width=55%}
+![](../images/AIC_values.jpeg){width=55%}
 \
 \
 A number of authors have noted that AIC tends to overfit models when sample sizes are
@@ -97,11 +98,11 @@ whenever n/p < 40.
 $$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
 \
 \
-**Washburn Example**: Aho and Weaver (2010) examined the effect of environmental characteristics on alpine vascular plant species richness on Mount Washburn (3124m) a volcanic peak in north-central Yellowstone National Park. The established 40 plots and measured species richness along with a suite of environmental variables; soil nitrogen, slope, aspect, rock cover and soil pH.
+**Washburn Example**: Aho and Weaver (2010) examined the effect of environmental characteristics on alpine vascular plant species richness on Mount Washburn (3124 m) a volcanic peak in north-central Yellowstone National Park. The established 40 plots and measured species richness along with a suite of environmental variables; soil nitrogen, slope, aspect, rock cover and soil pH.
 
 https://www.rdocumentation.org/packages/asbio/versions/1.6-7/topics/wash.rich
 
-![](images/washburn1.jpg){width=300px} ![](images/washburn2.jpeg){width=400px}
+![](../images/washburn1.jpg){width=300px} ![](../images/washburn2.jpeg){width=400px}
 
 ```{r import and reformat data}
 data("wash.rich") #attach data from the asbio library
@@ -145,9 +146,11 @@ This allows you to see whether a specific predictor adds meaningful explanatory 
 
 \
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.width=6}
 olsrr::ols_plot_added_variable(model_wash1)
 ```
+
+We can also diagnose multicollinearity using the **Variance Inflation Factor (VIF)**. This measures how much the variance of a regression coefficient is “inflated” because of multicollinearity (correlations among predictors).
 
 ```{r check model for multicolinearity}
 performance::check_collinearity(model_wash1)
@@ -159,6 +162,23 @@ performance::check_model(model_wash1)
 
 \
 \
+
+**Interpretation of the Variance Inflation Factor** 
+
+**VIF = 1**
+- No correlation with other predictors; the predictor is completely independent.
+
+**VIF between 1 and ~5**
+- Some correlation with other predictors, but generally not severe. Most researchers consider this acceptable.
+
+**VIF between ~5 and 10**
+- Indicates moderate to high multicollinearity. Coefficients may be unstable and harder to interpret. You should be cautious and investigate further (e.g., check correlations, consider variable reduction or combining predictors).
+
+**VIF > 10**
+- Commonly considered a red flag for serious multicollinearity. The predictor is highly redundant with others, and coefficient estimates are likely unreliable (James et al. 2013).
+
+The higher the VIF, the more that predictor’s estimated variance is inflated due to collinearity with other predictors. This doesn’t necessarily invalidate your model, but it makes interpreting individual coefficients harder and may reduce statistical power.
+
 Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, **multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low**. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
 \
 \
@@ -170,8 +190,6 @@ Multicollinearity should not be confused with a raw strong correlation between p
 </div>  
 \
 \
-**Interpretation of the Variance Inflation Factor**  
-The variance inflation factor is a measure to analyze the magnitude of multicollinearity of model terms. A **VIF less than 5 indicates a low correlation of that predictor with other predictors**. A value between 5 and 10 indicates a moderate correlation, while VIF values larger than 10 are a sign for high, not tolerable correlation of model predictors (James et al. 2013). The Increased SE column in the output indicates how much larger the standard error is due to the association with other predictors conditional on the remaining variables in the model.
 
 **Multicollinearity and Interaction Terms**  
 If interaction terms are included in a model, high VIF values are expected. This portion of multicollinearity among the component terms of an interaction is also called "inessential ill-conditioning", which leads to inflated VIF values that are typically seen for models with interaction terms (Francoeur 2013).  
@@ -180,7 +198,7 @@ For demonstration purposes will assume that we have *apriori* justification for 
 ```{r fit dredge model}
 # change na. action
 options(na.action = "na.fail") # otherwise blows up with NA values
-dredge_wash<-dredge(model_wash1)
+dredge_wash <- dredge(model_wash1)
 dredge_wash
 ```
 There are 32 possible models based on additive combinations of variables (no interaction terms).  
@@ -228,7 +246,7 @@ summary(model.avg(dredge_wash, subset = delta < 2)) # if you just want to look o
 ```
 Coefficients average across all models (full average) is probably better; more conservative. In this example the interpretation doesn't really change depending on technique for model averaging coefficients.
 
-```{r I guess we should make a figure, fig.width=4, fig.height=10}
+```{r I guess we should make a figure, fig.width=10}
 w1 <- ggplot(data.washburn, aes(soil_N, richness)) + 
   geom_point() +
   geom_smooth(method="lm")
@@ -250,7 +268,7 @@ w5 <- ggplot(data.washburn, aes(pH, richness)) +
   geom_point() +
   geom_smooth(method="lm")
 
-w1 / w2 / w3 / w4 / w5 #patchwork notation for figure alignment
+(w1 + w2 +w3) / (w4 + w5) #patchwork notation for figure alignment
 
 ```
 
