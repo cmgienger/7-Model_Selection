@@ -12,12 +12,12 @@ packages_needed <- c("ggplot2", # graphics
                      "dplyr",
                      "lme4", # display() etc.
                      "lmerTest", #gives us P-values
-                     "MuMIn", #models selection
+                     "MuMIn", #model selection
                      "asbio", #Washburn data
                      "GGally", #to make pairs plot
                      "performance", #model diagnostics
                      "patchwork",
-                     "olsrr"
+                     "olsrr" #added variable plots
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
