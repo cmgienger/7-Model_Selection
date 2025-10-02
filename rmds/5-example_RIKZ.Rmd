@@ -39,7 +39,7 @@ options(width = 90)
 
 #matrix(runif(100), ncol = 20) #test code to display adjusted width
 ```
-![](images/RIKZ_fig.jpeg)
+![](../images/RIKZ_fig.jpeg)
 
 The Dutch have fought great battles with the North Sea in order to extend their landmass as can be witnessed by the presence of dykes and sophisticated coastal defence systems. The effect of sea level rise on the ecology of the Dutch coastal system constitutes a serious issue.
 
@@ -51,7 +51,7 @@ of the beach) that might affect benthic fauna. Nine beaches were chosen by strat
 **NAP** is the height of the sampling station relative to mean sea level.  
 **Exposure** is an index that is composed of wave action, length of the surf zone, slope, grain size, and depth of the anaerobic layer.
 
-![](images/RIKZ_fig_2.png)
+![](../images/RIKZ_fig_2.png)
 
 ```{r message=FALSE, warning=FALSE}
 # Load in data
@@ -77,7 +77,7 @@ We generated 3 models:
 3. An **intercept only model** with no fixed effects but allowing for variation in richness across beaches. In this lecture, we'll create similar models with random intercepts and random intercepts + slopes but we'll additionally include Exposure and the NAP by Exposure interaction as additional fixed-effects.
 
 
-![](images/random_int_slope.jpg)
+![](../images/random_int_slope.jpg)
 
 Given these 3 models, we may be interested in knowing which one best fits our observed data so that we can interpret this model to draw inferences about our population. To do this, we can follow the guidelines laid out in Zuur _et al._ (2009):
 
