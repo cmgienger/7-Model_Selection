@@ -1,5 +1,5 @@
-"df","logLik","AICc","delta","weight"
-4,863.91,-1719.65,0,0.72
-5,863.94,-1717.65,2.007,0.264
-4,860.13,-1712.1,7.554,0.016
-4,819.49,-1630.82,88.83,0
+"Model","df","logLik","AICc","delta","weight"
+"density ~ distance + elev",4,863.91,-1719.65,0,0.72
+"density ~ slope + distance + elev",5,863.94,-1717.65,2.01,0.26
+"density ~ slope + distance",4,860.13,-1712.1,7.55,0.02
+"density ~ slope + pct.cover",4,819.49,-1630.82,88.83,0

@@ -485,8 +485,8 @@ subset(out.put, cumsum(out.put$weight) &lt;= .95)</code></pre>
 results in a table in a report, publication, or thesis. Here, we need to
 coerce the output from the <code>model.sel</code> function into a
 dataframe. Columns 6-10 of that data frame contain what we want. How do
-I know that? I first created the dataframe and used the “str” function
-to see what elements were in the dataframe.</p>
+I know that? I first created the dataframe and used the <code>str</code>
+function to see what elements were in the dataframe.</p>
 <pre class="r"><code># coerce the object out.put into a data frame
 # elements 6-10 in out.put have what we want
 sel.table &lt;- as.data.frame(out.put)[6:10]

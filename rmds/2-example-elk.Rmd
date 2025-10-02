@@ -15,6 +15,7 @@ output:
 
 ```{r setup2, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 packages_needed <- c("ggplot2",
                      "patchwork",
                      "MuMIn",
@@ -130,7 +131,7 @@ In most circumstances, you would like to include model selection results in a ta
 Here, we need to coerce the output from the `model.sel` function into a dataframe.
 Columns 6-10 of that data frame contain what we want.
 How do I know that?
-I first created the dataframe and used the "str" function to see what elements were in the dataframe.
+I first created the dataframe and used the `str` function to see what elements were in the dataframe.
 
 ```{r coerce the object out.put into a data frame}
 # coerce the object out.put into a data frame
@@ -140,35 +141,55 @@ sel.table
 ```
 
 This is a bit messy and not ready for any report.
-Let's clean this up a bit -- first by rounding.
+Let's clean this up a bit and export as a gt table and .csv file.
 
-```{r adjusting sig digits}
-# a little clean-up, lets round things a bit
-sel.table[, 2:3] <- round(sel.table[, 2:3], 2)
-sel.table[, 4:5] <- round(sel.table[, 4:5], 3)
-sel.table
-# that’s better
-```
+```{r general clean up and table formatting}
 
-```{r more clean up, eval=FALSE, include=FALSE}
-# how about a little renaming columns to fit proper conventions
-# number of parameters (df) should be K
-#names(sel.table)[1] = "K"
+# Round selected numeric columns to 2 decimals
+sel.table$logLik <- round(sel.table$logLik, 2)
+sel.table$AICc   <- round(sel.table$AICc, 2)
+sel.table$delta  <- round(sel.table$delta, 2)
+sel.table$weight <- round(sel.table$weight, 2)
 
-## lets be sure to put the model names in a new column
-#sel.table$Model<-rownames(sel.table)
+# Assume you have models already built: mod1, mod2, mod3, mod4
+mods <- list(mod1, mod4, mod3, mod2) #note the order is from best to worst model
 
-# replace Model name with formulas little tricky so be careful
-#for(i in 1:nrow(sel.table)) sel.table$Model[i]<- #as.character(formula(paste(sel.table$Model[i])))[3]
+# Extract formulas (single line per model)
+labs <- vapply(mods, function(m) {
+  paste(deparse(formula(m), width.cutoff = 500), collapse = "")
+}, character(1))
 
-# let's see what is in there
-#sel.table
-```
+# Add model formulas as a new column
+out.df <- cbind(Model = labs, as.data.frame(sel.table))
+rownames(out.df) <- NULL   # cleaner row labels
 
-```{r reorder columns, eval=FALSE, include=FALSE}
-#little reordering of columns
-#sel.table<-sel.table[,c(6,1,2,3,4,5)] #specify order of columns
-#sel.table
+# Make a gt table
+gt_tbl <- gt::gt(out.df) |>
+  tab_header(
+    title = "Model Selection Results for Elk Habitat Selection",
+    subtitle = "Formulas shown for each candidate model"
+  ) |>
+  fmt_number(
+    columns = c(logLik, AICc, delta, weight),
+    decimals = 2
+  ) |>
+  cols_label(
+    Model = "Formula",
+    df = "K", #by convention we use K for AIC comparison 
+    logLik = "LogLik",
+    AICc = "AICc",
+    delta = "ΔAICc",
+    weight = "Weight"
+  ) |>
+  tab_options(
+    table.font.size = px(14),
+    heading.align = "center"
+  )
+
+gt_tbl
+
+# Save as PNG into "../tables/"
+gtsave(gt_tbl, filename = "../tables/My model selection gt.png")
 ```
 
 Now that's more like it.
@@ -178,7 +199,7 @@ This is about ready for a report, so let's write it to a comma separated file.
 
 ```{r write AIC table to file}
 # write to a file, here a comma separated values format
-write.csv(sel.table,"../tables/My model selection table.csv", row.names = F)
+write.csv(out.df,"../tables/My model selection table.csv", row.names = F)
 ```
 
 The default model selection criteria for all `MuMIn` functions is AIC~c~.
