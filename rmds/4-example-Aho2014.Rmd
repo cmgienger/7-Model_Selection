@@ -102,7 +102,7 @@ $$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
 
 https://www.rdocumentation.org/packages/asbio/versions/1.6-7/topics/wash.rich
 
-![](../images/washburn1.jpg){width=300px} ![](../images/washburn2.jpeg){width=400px}
+![](../images/washburn1.jpg){width=400px} ![](../images/washburn2.jpeg){width=500px}
 
 ```{r import and reformat data}
 data("wash.rich") #attach data from the asbio library
