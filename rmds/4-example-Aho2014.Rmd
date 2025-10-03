@@ -1,6 +1,6 @@
 ---
 title: "Introduction to Model Selection"
-subtitle: Aho 2014 Washburn Example (Yellowstone)
+subtitle: Aho 2014
 output:
   html_document:
     toc: yes
@@ -95,11 +95,14 @@ whenever n/p < 40.
 $$ AIC_c = AIC+\frac{2k(k+1)}{n-k-1} $$
 \
 \
-**Washburn Example**: Aho and Weaver (2010) examined the effect of environmental characteristics on alpine vascular plant species richness on Mount Washburn (3124 m) a volcanic peak in north-central Yellowstone National Park. The established 40 plots and measured species richness along with a suite of environmental variables; soil nitrogen, slope, aspect, rock cover and soil pH.
+
+## Washburn Example (Yellowstone)
+
+Aho and Weaver (2010) examined the effect of environmental characteristics on alpine vascular plant species richness on Mount Washburn (3124 m) a volcanic peak in north-central Yellowstone National Park. The established 40 plots and measured species richness along with a suite of environmental variables; soil nitrogen, slope, aspect, rock cover, and soil pH.
 
 https://www.rdocumentation.org/packages/asbio/versions/1.6-7/topics/wash.rich
 
-![](../images/washburn1.jpg){width=400px} ![](../images/washburn2.jpeg){width=500px}
+![](../images/washburn1.jpg){width=400px} ![](../images/washburn2.jpeg){width=500px} ![](../images/effect_of_topography.png){width=500px}
 
 ```{r import and reformat data}
 data("wash.rich") #attach data from the asbio library
@@ -130,6 +133,12 @@ anova (model_washburn1) #coefficients of the full model
 \
 
 One way of visualizing multicolinearity is by using **Added Variable Plots**. Added Variable Plots (AVPs), sometimes called *partial regression plots*, are diagnostic plots in regression analysis that help you understand the unique contribution of a predictor variable *after accounting for other predictors in the model*. The AVP is essentially like zooming in on just the unique contribution of $X_1$ to $Y$.
+
+**Why two names?**
+
+-  “Added-variable” emphasizes the diagnostic use: you’re asking “what happens if I add this variable into the model?” The plot shows the unique contribution of that variable.
+
+-  “Partial regression” emphasizes the statistical perspective: you’re looking at the regression of *residual(Y)* on *residual(X)*, which is algebraically equivalent to the partial regression coefficient.
 
 If the plot shows a **strong linear trend**:  
 
@@ -174,7 +183,7 @@ performance::check_model(model_washburn1)
 **VIF > 10**
 - Commonly considered a red flag for serious multicollinearity. The predictor is highly redundant with others, and coefficient estimates are likely unreliable (James et al. 2013).
 
-The higher the VIF, the more that predictor’s estimated variance is inflated due to collinearity with other predictors. This doesn’t necessarily invalidate your model, but it makes interpreting individual coefficients harder and may reduce statistical power.
+The higher the VIF, the more that predictor’s estimated variance is inflated due to multicollinearity with other predictors. This doesn’t necessarily invalidate your model, but it makes interpreting individual coefficients harder and may reduce statistical power.
 
 Multicollinearity should not be confused with a raw strong correlation between predictors. What matters is the association between one or more predictor variables, *conditional on the other variables in the model*. In a nutshell, **multicollinearity means that once you know the effect of one predictor, the value of knowing the other predictor is rather low**. Thus, one of the predictors doesn't help much in terms of better understanding the model or predicting the outcome. As a consequence, if multicollinearity is a problem, the model seems to suggest that the predictors in question don't seems to be reliably associated with the outcome (low estimates, high standard errors), although these predictors actually are strongly associated with the outcome, i.e. indeed might have strong effect (McElreath 2020, chapter 6.1).  
 \
@@ -191,7 +200,7 @@ Multicollinearity should not be confused with a raw strong correlation between p
 **Multicollinearity and Interaction Terms**  
 If interaction terms are included in a model, high VIF values are expected. This portion of multicollinearity among the component terms of an interaction is also called "inessential ill-conditioning", which leads to inflated VIF values that are typically seen for models with interaction terms (Francoeur 2013).  
 
-For demonstration purposes will assume that we have *apriori* justification for including all predictor variables in our model; typically 1-2 papers supporting the role of each predictor in previous studies. Remember that data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. Our model including all predictor variables was already fit above `model_washburn1`. Use `dredge` function to fit all combinations.
+For demonstration purposes will assume that we have *apriori* justification for including all predictor variables in our model; typically we should cite 1-2 papers supporting the role of each predictor in previous studies. Remember that data dredging is strongly discouraged and can result in spurious (and irrelevant or worse, wrong) results and inference. Our model including all predictor variables was already fit above `model_washburn1`. Use `dredge` function to fit all combinations.
 ```{r fit dredge model}
 # change na. action
 options(na.action = "na.fail") # otherwise blows up with NA values

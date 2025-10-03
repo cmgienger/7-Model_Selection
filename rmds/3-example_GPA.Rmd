@@ -69,6 +69,7 @@ model are likely to be influential.
 
 ```{r message=FALSE, warning=FALSE}
 olsrr::ols_plot_added_variable(GPA.all.parms)
+#added variable plot is also called a partial regression plot; effect of one variable while holding others constant
 ```
 
 https://olsrr.rsquaredacademy.com/articles/regression_diagnostics
@@ -120,6 +121,8 @@ p4 <- ggplot(GPA_data, aes(SATverbal, GPA, colour = HSmath)) +
   scale_colour_gradientn(colours = heat.colors(10, rev=TRUE))
                      
 p3+p4 #uses 'patchwork' library to put plots next to each other
+
+#these figure plot raw data. You could also make partial variable plots (aka added variable plots) to show statistical fits of regression lines for variables retained in the top model.
 ```
 
 "Dredging" used here is just an example for comparing models. Dregding is known to prefer over-complex models.

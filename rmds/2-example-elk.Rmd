@@ -19,7 +19,8 @@ knitr::opts_chunk$set(echo = TRUE)
 packages_needed <- c("ggplot2",
                      "patchwork",
                      "MuMIn",
-                     "easystats"
+                     "easystats",
+                     "gt"
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -30,6 +31,7 @@ library(ggplot2)
 library(patchwork)
 library(MuMIn)
 library(easystats)
+library(gt)
 ```
 
 Jim Peterson, Oregon State University <https://sites.google.com/site/rforfishandwildlifegrads/home/mumin_usage_examples>
@@ -276,6 +278,8 @@ So read the message below and users beware.
 # fit model with all parameters
 all.parms <- lm(density ~ slope + distance + elev + pct.cover, data = data_elk)
 
+summary(all.parms)
+
 # the dredge function fits all combinations
 # of the variables in the all.parms model fit above
 results <- dredge(all.parms)
@@ -328,6 +332,54 @@ p1 + p2
 -   Note that this example probably needs a different error structure because prediction line drops to negative for distance values below 125.
     Lots of zeros suggests a poisson or zero-inflated poisson model might be a better fit.
     We will ignore this for now.
+
+
+**Create partial regression plots (effect of each predictor adjusting for others)**
+
+You can do this by plotting predicted values from the model across a grid of each predictor while holding the others constant at their mean. THese are different than the raw data plots above.
+
+```{r partial regression plots}
+library(ggeffects)
+#loops to make plot for every predictor variable
+
+# Multiple regression of 'top model' (same as above)
+top_model <- lm(formula = density ~ distance + elev, data = data_elk)
+
+# All variable names in the model frame
+vars <- names(model.frame(top_model))[-1]  # drop the response "y"
+
+# Make a list of ggpredict results
+preds <- lapply(vars, function(v) ggpredict(top_model, terms = v))
+
+# Helper function: build equation text
+make_eqn <- function(var, coefs) {
+  b0 <- round(coefs[1], 3)
+  b1 <- round(coefs[var], 3)
+  paste0("y = ", b0, " + ", b1, " × ", var)
+}
+
+# Convert each to a plot with title
+plots <- lapply(seq_along(preds), function(i) {
+  plot(preds[[i]]) + ggtitle(paste("Effect of", vars[i]))
+})
+
+# Combine with patchwork
+wrap_plots(plots, ncol = 2)
+```
+
+Each of these `ggpredict` plots shows:
+-  The fitted regression line (partial effect of the predictor, controlling for others)
+-  A 95% confidence band around the prediction
+
+```{r alternative partial regression plots}
+#sjPlot might be easier
+sjPlot::plot_model(top_model, type = "pred", terms = c("distance"))
+sjPlot::plot_model(top_model, type = "pred", terms = c("elev"))
+```
+
+
+
+
 
 -   Peterson goes on with other examples, including GLMM, but we won't because the model selection framework becomes a bit more confusing.
 

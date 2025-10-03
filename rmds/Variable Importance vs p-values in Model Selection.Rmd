@@ -1,0 +1,188 @@
+---
+title: "Variable Importance vs p-values in Model Selection"
+author: "C.M. Gienger"
+output: html_document
+---
+## Question
+
+<style>
+div.blue {
+  background-color:#e6f0ff;
+  border-radius: 5px;
+  padding: 10px;
+  border: 2px solid black;
+  font-size: 16px;   /* adjust text size here */
+}
+</style>
+
+<div class="blue">
+
+**In model selection, why do we need to calculate variable importance weights rather than using variable p-values from the full (global) model?**  
+
+</div>
+
+---
+
+## Answer
+
+This gets at the philosophy of **information-theoretic model selection** versus **null-hypothesis significance testing (NHST)**.  
+
+#### 1. P-values are conditional on the *full/global model*
+- A p-value for a variable is calculated assuming the *global model* (with all predictors included) is the "true" structure.  
+- This means the p-value tells you about that variable’s contribution **only in the context of all the other predictors being present**.  
+- If predictors are correlated (multicollinearity), or if the global model includes weak/unnecessary terms, p-values can fluctuate wildly.  
+- Thus, p-values don’t reflect how consistently a variable improves model fit across *alternative plausible models*.  
+
+---
+
+#### 2. Model selection is about *relative support* across models
+- Information-theoretic approaches (AIC, AICc, BIC, etc.) recognize that there is rarely one single "true" model. Instead, we compare candidate models for their relative support from the data.  
+- **Variable importance weights** (e.g., `MuMIn::sw`) summarize how often a variable appears in the set of best-supported models, weighted by each model’s Akaike weight.  
+- This tells you: *Across all plausible models, how important is this variable in explaining variation?*  
+
+---
+
+#### 3. Importance weights account for *model uncertainty*
+- P-values from a global model **ignore model uncertainty** — they pretend the global model is correct.  
+- Variable importance weights explicitly incorporate the possibility that multiple models explain the data nearly equally well.  
+- This is especially critical in ecology and wildlife biology, where many predictors are correlated and no single model dominates.  
+
+---
+
+#### 4. Interpretation differences
+- **P-value**: "If the global model is true, what is the probability of observing this effect (or more extreme) by chance?"  
+- **Importance weight**: "Given the evidence across all models, how likely is it that this variable truly belongs in the model?"  
+
+---
+
+### Bottom line
+We calculate variable importance weights instead of relying on p-values because **p-values depend on one arbitrary model (the global one), whereas importance weights integrate over the whole model set and thus better capture model uncertainty and predictor relevance**.  
+
+---
+
+## Compare P-values to Variable Importance Weights - Elk Habitat Selection Revisted
+
+```{r, message=FALSE, warning=FALSE}
+# Load packages
+library(MuMIn)    # for model selection & importance weights
+library(ggplot2)
+library(patchwork)
+
+options(width = 90)  #adjust width of console outout
+
+#import data
+data_elk<-read.csv("../data/elk_example.csv")
+
+# Fit a global model model with all parameters
+all.parms <- lm(density ~ slope + distance + elev + pct.cover, data = data_elk)
+
+# Look at p-values from the global model
+summary(all.parms)
+```
+
+```{r Extract variable names (excluding intercept) and their p-values, include=FALSE}
+# Get summary of global model
+s <- summary(all.parms)
+
+# Extract variable names (excluding intercept) and their p-values
+vars <- rownames(s$coefficients)[-1]           # remove "(Intercept)"
+pvals <- s$coefficients[-1, "Pr(>|t|)"]
+
+# Combine into a named list
+#p_list <- as.list(pvals)
+p_list <- as.list(round(pvals, 3))
+names(p_list) <- vars
+```
+
+
+If you only looked at these p-values, you might conclude that `slope` and `pct.cover` don’t matter much.
+
+Model Selection and Variable Importance
+```{r Model Selection and Variable Importance}
+# Dredge through all subsets of the global model
+options(na.action = "na.fail")  # required for dredge
+results <- dredge(all.parms)
+results
+```
+
+```{r Variable importance weights}
+# variable importance weights
+sw(results)
+```
+
+```{r print p-values from global model}
+#print p-values from global model
+p_list
+```
+
+
+**Interpretation:**
+
+`pct.cover`, and `slp` appear in some of the top-ranked models (AICc ~ <2.0) even though they are not 'significant' in the global model (slope p = 0.77, pct.cover p =0.30)
+
+Teaching Figure: Comparing p-values vs Importance Weights
+
+```{r echo=FALSE}
+# Fit a global multiple regression model
+all.parms <- lm(density ~ slope + distance + elev + pct.cover, data = data_elk)
+
+# 1. Extract p-values from the global model
+summary_mod <- summary(all.parms)
+p_values <- coef(summary_mod)[, "Pr(>|t|)"]
+p_values <- p_values[-1]  # drop intercept
+neglog_p <- -log10(p_values)
+
+# 2. Get variable importance weights via MuMIn model averaging
+options(na.action = "na.fail") # required for dredge
+dredged <- dredge(all.parms)
+importance_weights <- sw(dredged)
+
+# Align variables: ensure names match between p-values and importance
+vars <- intersect(names(p_values), names(importance_weights))
+neglog_p <- neglog_p[vars]
+importance_weights <- importance_weights[vars]
+
+# Create a consistent order
+var_order <- vars[order(neglog_p)]  # could also use importance_weights
+
+# Data frames for plotting
+df_p <- data.frame(
+  var = factor(vars, levels = var_order),
+  value = neglog_p
+)
+
+df_imp <- data.frame(
+  var = factor(vars, levels = var_order),
+  value = importance_weights
+)
+
+# 3. Plot side by side
+p1 <- ggplot(df_p, aes(x=value, y=var)) +
+  geom_col(fill="steelblue") +
+  geom_vline(xintercept = -log10(0.05), color="red", linetype="dashed") +
+  labs(title="Global Model p-values", x="-log10(p)", y="",
+       subtitle="Depends on the global model") +
+  theme_minimal()
+
+p2 <- ggplot(df_imp, aes(x=value, y=var)) +
+  geom_col(fill="seagreen") +
+  labs(title="Variable Importance Weights", 
+       subtitle="Reflects support across plausible models",
+       x="Importance (0–1)", y="") +
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  theme_minimal()
+
+p1 + p2
+```
+
+We can compare the magnitude of P-values against Variable Importance. (We use −log₁₀(p) to display the magnitude of a p-value because it makes very small probabilities easier to interpret, compare, and visualize. Larger values = lower p-values; red dotted line is p=0.05 threshold)
+
+You can see that `pct.cover` and `slope` contribute to the candidate model set (have considerable variable importance). If we only looked at P-values from the global model we probably wouldn't have considered `pct.cover` and `slope` as having influence. We would have certainly dismissed their importance. 
+
+**Conclusion**
+
+-  Global model p-values depend heavily on the assumed model and ignore model uncertainty.
+
+-  Variable importance weights reflect how consistently a variable improves fit across the *set* of plausible models.
+
+-  For model selection, importance weights provide a more reliable measure of predictor relevance.
