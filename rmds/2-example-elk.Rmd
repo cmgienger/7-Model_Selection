@@ -279,7 +279,9 @@ So read the message below and users beware.
 all.parms <- lm(density ~ slope + distance + elev + pct.cover, data = data_elk)
 
 summary(all.parms)
+```
 
+```{r dredge}
 # the dredge function fits all combinations
 # of the variables in the all.parms model fit above
 results <- dredge(all.parms)
@@ -377,6 +379,10 @@ sjPlot::plot_model(top_model, type = "pred", terms = c("distance"))
 sjPlot::plot_model(top_model, type = "pred", terms = c("elev"))
 ```
 
+```{r}
+#easystats
+estimate_means(top_model, c("distance")) |> plot()
+```
 
 
 

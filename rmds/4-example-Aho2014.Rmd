@@ -19,7 +19,8 @@ packages_needed <- c("ggplot2", # graphics
                      "GGally", #to make pairs plot
                      "performance", #model diagnostics
                      "patchwork",
-                     "olsrr" #added variable plots
+                     "olsrr", #added variable plots
+                     "car" #added variable plots
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -37,6 +38,7 @@ library(GGally)
 library(performance)
 library(patchwork)
 library(olsrr)
+library(car)
 ```
 
 ```{r adjust width of console outputs, include=FALSE}
@@ -128,7 +130,7 @@ However, what we are really concerned with is **multicolinearity**. Multicolinea
 
 ```{r fitmodel to look at Variance Inflation Factor}
 model_washburn1 <- lm(richness ~ soil_N + slope + aspect + cover + pH, data=data_washburn)
-anova (model_washburn1) #coefficients of the full model
+summary (model_washburn1) #coefficients of the full model
 ```
 \
 
@@ -152,8 +154,9 @@ This allows you to see whether a specific predictor adds meaningful explanatory 
 
 \
 
-```{r ols_plot_added_variable, message=FALSE, warning=FALSE, fig.width=6}
-olsrr::ols_plot_added_variable(model_washburn1)
+```{r added variable plots, message=FALSE, warning=FALSE, fig.height=10}
+car::avPlots(model_washburn1) #avPlots gives AVPs for many model types including GLMs
+#olsrr::ols_plot_added_variable(model_washburn1) #only gives AVPs for linear models
 ```
 
 We can also diagnose multicollinearity using the **Variance Inflation Factor (VIF)**. This measures how much the variance of a regression coefficient is “inflated” because of multicollinearity (correlations among predictors).
