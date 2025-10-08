@@ -20,7 +20,8 @@ packages_needed <- c("ggplot2",
                      "patchwork",
                      "MuMIn",
                      "easystats",
-                     "gt"
+                     "gt",
+                     "summarytools"
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -32,6 +33,7 @@ library(patchwork)
 library(MuMIn)
 library(easystats)
 library(gt)
+library(summarytools)
 ```
 
 Jim Peterson, Oregon State University <https://sites.google.com/site/rforfishandwildlifegrads/home/mumin_usage_examples>
@@ -53,8 +55,20 @@ data_elk<-read.csv("../data/elk_example.csv")
 
 The data includes three response variables; count, density, and presence.
 
-The data includes five predictor variables: elev (elevation), slope (gradient), area, distance (to nearest population), and pct.cover (% cover).\
+The data includes five predictor variables: elev (elevation), slope (gradient), area, distance (to nearest population), and pct.cover (% cover). Let's see what they look like.
 
+```{r message=FALSE, warning=FALSE}
+
+print(dfSummary(data_elk, 
+                varnumbers   = FALSE, 
+                valid.col    = FALSE, 
+                graph.magnif = 0.75),
+      max.tbl.height = 400, # if this is turned off, entire table displays
+      method = "render")
+```
+
+
+\
 \
 Lets look at the relationships among the predictor variables to see if there is potential redundancy (colinearity); response variable not included.
 
@@ -338,7 +352,7 @@ p1 + p2
 
 **Create partial regression plots (effect of each predictor adjusting for others)**
 
-You can do this by plotting predicted values from the model across a grid of each predictor while holding the others constant at their mean. THese are different than the raw data plots above.
+You can do this by plotting predicted values from the model across a grid of each predictor **while holding the others constant at their mean**. These are different than the raw data plots above.
 
 ```{r partial regression plots}
 library(ggeffects)
@@ -373,10 +387,36 @@ Each of these `ggpredict` plots shows:
 -  The fitted regression line (partial effect of the predictor, controlling for others)
 -  A 95% confidence band around the prediction
 
-```{r alternative partial regression plots}
+```{r alternative partial regression plots with rug ticks at bottom}
 #sjPlot might be easier
-sjPlot::plot_model(top_model, type = "pred", terms = c("distance"))
-sjPlot::plot_model(top_model, type = "pred", terms = c("elev"))
+
+p3 <-
+  sjPlot::plot_model(top_model, type = "pred", terms = "distance") +
+  geom_rug(
+    data = data_elk,
+    aes(x = distance),
+    inherit.aes = FALSE,
+    sides = "b",
+    alpha = 0.4,
+    length = unit(0.02, "npc"),
+    color = "gray40"
+  ) +
+  theme_classic()
+
+p4 <-
+  sjPlot::plot_model(top_model, type = "pred", terms = "elev") +
+  geom_rug(
+    data = data_elk,
+    aes(x = elev),
+    inherit.aes = FALSE,
+    sides = "b",
+    alpha = 0.4,
+    length = unit(0.02, "npc"),
+    color = "gray40"
+  ) +
+  theme_classic()
+
+p3 + p4
 ```
 
 ```{r}
