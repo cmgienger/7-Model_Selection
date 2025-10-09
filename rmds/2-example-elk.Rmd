@@ -49,7 +49,7 @@ options(width = 90)
 #matrix(runif(100), ncol = 20) #test code to display adjusted width
 ```
 
-```{r imort data}
+```{r import data}
 data_elk<-read.csv("../data/elk_example.csv")
 ```
 
@@ -331,61 +331,29 @@ sw(results)
 Notice above that every parameter is in the same number of models.
 
 ```{r make a figure using best-fit model, message=FALSE, warning=FALSE, fig.width=10}
-p1 <- ggplot(data_elk, aes(distance, density, colour = elev)) +
+p1 <- ggplot(data_elk, aes(distance, density)) +
+  ggtitle("raw data plot - distance") +
   geom_point() +
   geom_smooth(method = "lm") +
-  scale_x_continuous(limits = c(0, 700))
+  scale_x_continuous(limits = c(0, 700) +
+  scale_y_continuous(limits = c(0, 0.06)))
 
-p2 <- ggplot(data_elk, aes(elev, density, colour = distance)) +
+p2 <- ggplot(data_elk, aes(elev, density)) +
+  ggtitle("raw data plot - elev") +
   geom_point() +
   geom_smooth(method = "lm") +
-  scale_colour_gradientn(colours = terrain.colors(10, rev = TRUE)) +
-  scale_x_continuous(limits = c(0, 900))
+  scale_x_continuous(limits = c(0, 1000) +
+  scale_y_continuous(limits = c(0, 0.06)))
 
 p1 + p2
 ```
 
--   Note that this example probably needs a different error structure because prediction line drops to negative for distance values below 125.
-    Lots of zeros suggests a poisson or zero-inflated poisson model might be a better fit.
-    We will ignore this for now.
+-   Note that this example probably needs a different error structure because prediction line drops to negative for distance values below 125. Lots of zeros suggests a poisson or zero-inflated poisson model might be a better fit. We will ignore this for now.
 
 
 **Create partial regression plots (effect of each predictor adjusting for others)**
 
 You can do this by plotting predicted values from the model across a grid of each predictor **while holding the others constant at their mean**. These are different than the raw data plots above.
-
-```{r partial regression plots}
-library(ggeffects)
-#loops to make plot for every predictor variable
-
-# Multiple regression of 'top model' (same as above)
-top_model <- lm(formula = density ~ distance + elev, data = data_elk)
-
-# All variable names in the model frame
-vars <- names(model.frame(top_model))[-1]  # drop the response "y"
-
-# Make a list of ggpredict results
-preds <- lapply(vars, function(v) ggpredict(top_model, terms = v))
-
-# Helper function: build equation text
-make_eqn <- function(var, coefs) {
-  b0 <- round(coefs[1], 3)
-  b1 <- round(coefs[var], 3)
-  paste0("y = ", b0, " + ", b1, " × ", var)
-}
-
-# Convert each to a plot with title
-plots <- lapply(seq_along(preds), function(i) {
-  plot(preds[[i]]) + ggtitle(paste("Effect of", vars[i]))
-})
-
-# Combine with patchwork
-wrap_plots(plots, ncol = 2)
-```
-
-Each of these `ggpredict` plots shows:
--  The fitted regression line (partial effect of the predictor, controlling for others)
--  A 95% confidence band around the prediction
 
 ```{r alternative partial regression plots with rug ticks at bottom}
 #sjPlot might be easier
@@ -399,9 +367,7 @@ p3 <-
     sides = "b",
     alpha = 0.4,
     length = unit(0.02, "npc"),
-    color = "gray40"
-  ) +
-  theme_classic()
+    color = "gray40")
 
 p4 <-
   sjPlot::plot_model(top_model, type = "pred", terms = "elev") +
@@ -412,22 +378,43 @@ p4 <-
     sides = "b",
     alpha = 0.4,
     length = unit(0.02, "npc"),
-    color = "gray40"
-  ) +
-  theme_classic()
+    color = "gray40")
 
 p3 + p4
 ```
 
-```{r}
+Each of these `sjPlot` plots shows:
+
+-  The fitted regression line (partial effect of the predictor, after controlling for other variables [holding the others constant at their mean])
+-  A 95% confidence band around the prediction
+-  'rug plot' tick marks along bottom indication location of data points on the x-axis
+-  Because its compatible with `ggplot2`, you could also put raw data points on with `geom_point`.
+
+```{r include=FALSE}
 #easystats
-estimate_means(top_model, c("distance")) |> plot()
+# estimate_means(top_model, c("elev")) %>% plot() +
+#   geom_rug(
+#     data = data_elk,
+#     aes(x = elev),
+#     inherit.aes = FALSE,
+#     sides = "b",
+#     alpha = 0.4,
+#     length = unit(0.02, "npc"),
+#     color = "blue"
+#   ) +
+#   scale_x_continuous(limits = c(0, 1000)) +
+#   scale_y_continuous(limits = c(0, 0.06))
 ```
 
+Wow, these predicted plots look similar to the raw data plots. Let's put them next to each other for comparison.
 
+```{r combine plots for comparison, fig.width=8, fig.height=8}
+(p1 + p2) / (p3 + p4)
+```
 
+If you squint just right you should be able to see that the lines for both raw variable regression plots (top plots) and the predicted variable plots from the top model (bottom plots) are the same (their axis scaling is just different). 
 
--   Peterson goes on with other examples, including GLMM, but we won't because the model selection framework becomes a bit more confusing.
+Why do my predicted plots and plots of raw data look the same, including regression lines? (see next lesson)
 
 
 \

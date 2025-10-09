@@ -1,0 +1,164 @@
+---
+title: "Why My Predicted and Raw Data Plots Look the Same"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(ggplot2)
+library(sjPlot)
+library(patchwork)
+```
+
+```{r import data}
+data_elk<-read.csv("../data/elk_example.csv")
+```
+
+When you fit a linear model and compare a predicted plot from
+`sjPlot::plot_model()` with a raw data scatterplot, you might notice that
+they look nearly identical — same cloud of points, same regression line.
+
+This document explains why that happens, using your model as an example:
+
+```{r}
+top_model <- lm(formula = density ~ distance + elev, data = data_elk)
+```
+
+## 1. Simple Linear Model Effects
+
+Your model includes two continuous predictors:
+
+`density` ~ `distance` + `elev`
+
+
+When you plot:
+
+```{r}
+plot_model(top_model, type = "pred", terms = "distance")
+```
+
+sjPlot:
+
+- Holds the other variable (`elev`) constant at its mean value.
+
+- Predicts density across the range of distance.
+
+If both predictors are not strongly correlated, the line representing the partial effect of `distance` will look almost identical to the raw regression line of `density` ~ `distance`.
+
+## 2. Why They Look the Same
+
+If your model is simple and the predictors are roughly independent:
+
+The partial slope (controlling for other predictors)
+≈ the marginal slope (simple regression of `density` ~ `distance`).
+
+Hence, both plots appear visually identical.
+
+You can verify this directly (correlation check):
+
+```{r}
+cor(data_elk$distance, data_elk$elev, use = "complete.obs")
+```
+
+If the correlation is near 0, the partial and simple relationships align perfectly.
+
+## 3. Conceptual Difference
+
+Even if the plots look the same, their meanings differ:
+
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 6px;
+  text-align: left;
+}
+</style>
+
+| **Plot Type**               | **What It Shows**                                           | **Interpretation**    |
+|--------------------------|---------------------------------------------------------|-------------------|
+| **Raw scatter + `lm` line**    | Relationship between `distance` and `density` ignoring `elev` | Marginal effect   |
+| **Predicted (`plot_model`)**   | Relationship between `distance` and `density` holding `elev` constant | Partial effect    |
+
+
+## 4. Seeing the Difference More Clearly
+
+If you visualize both predictors, you can compare their effects side-by-side.
+
+```{r}
+p1 <- plot_model(top_model, type = "pred", terms = "distance")
+p2 <- plot_model(top_model, type = "pred", terms = "elev")
+
+p1 + p2 + plot_layout(ncol = 2)
+```
+
+Compare those with the raw data plots:
+
+```{r}
+p_raw1 <- ggplot(data_elk, aes(distance, density)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "Raw data: Distance vs Density")
+
+p_raw2 <- ggplot(data_elk, aes(elev, density)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "Raw data: Elevation vs Density")
+
+p_raw1 + p_raw2 + plot_layout(ncol = 2)
+```
+
+If one line differs between panels, that predictor is correlated with the other — and the partial effect diverges from the marginal one (that’s where **covariation** between predictors matters).
+
+## 5. Making the Difference Explicit
+
+You can compute partial predictions manually.
+Here, we predict `density` across the range of `distance`, holding `elev` at its mean:
+
+```{r}
+newdata <- data.frame(
+  distance = seq(min(data_elk$distance), max(data_elk$distance), length.out = 100),
+  elev = mean(data_elk$elev, na.rm = TRUE)
+)
+
+newdata$pred <- predict(top_model, newdata)
+
+ggplot(data_elk, aes(distance, density)) +
+  geom_point(alpha = 0.5) +
+  geom_line(data = newdata, aes(distance, pred), color = "red", linewidth = 1.2) +
+  theme_classic() +
+  labs(title = "Partial Prediction (holding elevation constant)",
+       subtitle = "Red line = predicted effect of distance")
+```
+
+That red line is exactly what `plot_model(type = "pred")` displays.
+
+## 6. Summary
+
+Your predicted plots look like your raw data plots because your model is simple and linear — the partial effect of distance controlling for `elev` is nearly identical to the simple regression of `density` ~ `distance`.
+
+## 7. Optional Extension: When They Differ
+
+When predictors are strongly correlated or interact, the predicted plot will differ from the raw scatter. You can explore this by adding a simulated interaction:
+
+```{r}
+# Example of divergence
+data_elk$interaction <- data_elk$distance * data_elk$elev
+mod_int <- lm(density ~ distance * elev, data = data_elk)
+plot_model(mod_int, type = "pred", terms = c("distance", "elev"))
+```
+
+In such cases, the “partial” relationship changes shape depending on the covariate’s level.
+
+References
+
+- Fox, J. (2016). Applied Regression Analysis and Generalized Linear Models (3rd ed.). Sage.
+- Hector, A. (2015). The New Statistics with R: An Introduction for Biologists. Oxford University Press.
+- Lüdecke, D., et al. (2021). sjPlot: Data Visualization for Statistics in Social Science.
